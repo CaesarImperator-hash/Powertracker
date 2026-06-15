@@ -1,0 +1,941 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+  <title>PL Tracker</title>
+
+  <!-- PWA iOS -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="PL Tracker">
+  <meta name="theme-color" content="#0E0E10">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
+  <link rel="manifest" href="/manifest.json">
+
+  <style>
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    html, body {
+      margin: 0; padding: 0;
+      background: #0E0E10; color: #F2EBDC;
+      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', system-ui, sans-serif;
+      overscroll-behavior: none;
+    }
+    body { padding-top: env(safe-area-inset-top); }
+    input { -webkit-appearance: none; appearance: none; font-family: inherit; }
+    input:focus { outline: 1px solid #E5C547; outline-offset: -1px; }
+    button { cursor: pointer; font-family: inherit; }
+
+    .app { min-height: 100vh; background: #0E0E10; padding-bottom: calc(72px + env(safe-area-inset-bottom)); max-width: 600px; margin: 0 auto; }
+    .pad { padding: 32px 20px 20px; }
+
+    .eyebrow { font-size: 10px; letter-spacing: 2px; color: #8B8680; font-weight: 600; margin-bottom: 8px; }
+    h1 {
+      font-size: 36px; font-weight: 800; letter-spacing: -1px;
+      margin: 0; line-height: 1; color: #F2EBDC;
+      font-family: Impact, 'Helvetica Neue Condensed', 'Arial Narrow', sans-serif;
+      text-transform: uppercase;
+    }
+    .subtitle { font-size: 14px; color: #8B8680; margin-top: 6px; letter-spacing: 0.3px; }
+
+    /* Today */
+    .main-preview { padding: 16px 0; border-bottom: 1px solid #2A2A30; }
+    .main-name { font-size: 14px; color: #F2EBDC; margin-bottom: 6px; }
+    .main-stats { font-family: ui-monospace, 'SF Mono', Menlo, monospace; font-size: 22px; font-weight: 600; letter-spacing: -0.5px; }
+    .main-weight { color: #E5C547; }
+    .main-rpe { color: #8B8680; font-size: 16px; }
+
+    .cta {
+      width: 100%; padding: 18px; background: #E5C547; color: #0E0E10;
+      border: none; font-weight: 800; font-size: 14px; letter-spacing: 2px;
+      margin-top: 24px;
+    }
+    .cta:active { background: #c9aa3c; }
+
+    .progress-block { margin-top: 40px; }
+    .progress-lbl { display: flex; justify-content: space-between; font-size: 10px; letter-spacing: 1.5px; color: #8B8680; margin-bottom: 8px; font-weight: 600; }
+    .progress-bar { height: 3px; background: #2A2A30; overflow: hidden; }
+    .progress-fill { height: 100%; background: #E5C547; transition: width 0.3s; }
+
+    /* Programme */
+    .week-tabs { display: grid; grid-template-columns: repeat(8, 1fr); gap: 4px; margin-top: 24px; margin-bottom: 20px; }
+    .week-tab { padding: 10px 0; background: transparent; color: #8B8680; border: 1px solid #2A2A30; font-size: 11px; font-weight: 700; letter-spacing: 0.5px; }
+    .week-tab.active { background: #E5C547; color: #0E0E10; border-color: #E5C547; }
+    .block-badge { display: inline-block; padding: 4px 8px; background: #1A1A1E; color: #8B8680; font-size: 10px; letter-spacing: 1.5px; font-weight: 600; margin-bottom: 12px; }
+
+    .day-row {
+      width: 100%; background: #1A1A1E; border: none; border-left: 3px solid #2A2A30;
+      padding: 16px; margin-bottom: 8px; color: #F2EBDC; text-align: left;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .day-row.done { border-left-color: #6FA85B; }
+    .day-label { font-size: 10px; letter-spacing: 1.5px; color: #8B8680; font-weight: 600; margin-bottom: 4px; }
+    .day-name { font-size: 16px; font-weight: 600; color: #F2EBDC; }
+    .day-ex { font-size: 11px; color: #8B8680; margin-top: 4px; }
+    .day-arrow { color: #8B8680; font-size: 18px; }
+    .day-arrow.done { color: #6FA85B; }
+
+    /* Session */
+    .back-btn { background: transparent; color: #8B8680; border: none; padding: 0; font-size: 12px; letter-spacing: 1px; margin-bottom: 16px; }
+    .session-progress { display: flex; align-items: center; gap: 12px; margin-top: 12px; margin-bottom: 24px; font-size: 11px; color: #8B8680; letter-spacing: 1px; }
+    .mini-bar { flex: 1; height: 2px; background: #2A2A30; }
+    .mini-bar-fill { height: 100%; background: #E5C547; transition: width 0.3s; }
+
+    .ex-card { background: #1A1A1E; padding: 16px; margin-bottom: 16px; }
+    .ex-name { font-size: 15px; font-weight: 600; color: #F2EBDC; margin-bottom: 4px; }
+    .ex-target { font-size: 12px; color: #E5C547; font-family: ui-monospace, 'SF Mono', Menlo, monospace; }
+    .ex-note { font-size: 11px; color: #8B8680; margin-top: 4px; font-style: italic; }
+
+    .sets-grid { display: grid; grid-template-columns: 24px 1fr 1fr 1fr 40px; gap: 8px; align-items: center; margin-top: 12px; }
+    .set-head { font-size: 9px; letter-spacing: 1px; color: #8B8680; font-weight: 600; text-transform: uppercase; padding-bottom: 4px; border-bottom: 1px solid #2A2A30; }
+    .set-num { font-size: 13px; color: #8B8680; font-family: ui-monospace, 'SF Mono', Menlo, monospace; font-weight: 600; }
+    .set-input { background: #0E0E10; border: 1px solid #2A2A30; color: #F2EBDC; padding: 8px 6px; font-size: 14px; font-family: ui-monospace, 'SF Mono', Menlo, monospace; text-align: center; width: 100%; }
+    .set-check { width: 36px; height: 36px; border: 1px solid #2A2A30; background: transparent; font-size: 18px; font-weight: 700; color: #8B8680; display: flex; align-items: center; justify-content: center; padding: 0; }
+    .set-check.done { background: #6FA85B; color: #0E0E10; border-color: #6FA85B; }
+
+    /* Timer */
+    .timer {
+      position: fixed; bottom: calc(20px + env(safe-area-inset-bottom)); left: 20px; right: 20px;
+      max-width: 560px; margin: 0 auto; background: #1A1A1E; border: 1px solid #E5C547;
+      padding: 16px; display: flex; align-items: center; justify-content: space-between;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.6); z-index: 20;
+    }
+    .timer-lbl { font-size: 10px; letter-spacing: 1.5px; color: #8B8680; font-weight: 600; flex: 1; }
+    .timer-num { font-size: 32px; font-weight: 800; color: #E5C547; font-family: ui-monospace, 'SF Mono', Menlo, monospace; letter-spacing: -1px; margin: 0 16px; }
+    .timer-skip { background: transparent; color: #8B8680; border: 1px solid #2A2A30; padding: 8px 12px; font-size: 10px; letter-spacing: 1px; }
+
+    /* Nav */
+    .nav {
+      position: fixed; bottom: 0; left: 0; right: 0; background: #0E0E10;
+      border-top: 1px solid #2A2A30; display: flex; height: calc(64px + env(safe-area-inset-bottom));
+      padding-bottom: env(safe-area-inset-bottom); z-index: 10;
+    }
+    .tab-btn { flex: 1; background: transparent; border: none; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 8px; font-weight: 600; color: #8B8680; }
+    .tab-btn.active { color: #E5C547; }
+    .tab-icon { font-size: 18px; line-height: 1; }
+    .tab-label { font-size: 10px; margin-top: 4px; letter-spacing: 0.5px; }
+
+    /* Stats */
+    .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 24px; }
+    .stat-box { background: #1A1A1E; padding: 16px; }
+    .stat-num { font-size: 32px; font-weight: 800; color: #E5C547; font-family: Impact, 'Helvetica Neue Condensed', sans-serif; line-height: 1; }
+    .stat-lbl { font-size: 10px; letter-spacing: 1.5px; color: #8B8680; margin-top: 6px; font-weight: 600; }
+    .section-head { font-size: 10px; letter-spacing: 2px; color: #8B8680; font-weight: 700; margin-top: 32px; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid #2A2A30; }
+    .pr-row { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #2A2A30; }
+    .pr-name { font-size: 14px; color: #F2EBDC; }
+    .pr-val { font-size: 14px; color: #E5C547; font-family: ui-monospace, 'SF Mono', Menlo, monospace; font-weight: 600; }
+    .empty { margin-top: 60px; text-align: center; color: #8B8680; font-size: 13px; font-style: italic; }
+
+    .big-stat { margin-top: 32px; text-align: center; }
+    .big-num { font-size: 72px; font-weight: 800; color: #E5C547; font-family: Impact, 'Helvetica Neue Condensed', sans-serif; line-height: 1; }
+    .big-lbl { font-size: 12px; letter-spacing: 2px; color: #8B8680; margin-top: 8px; }
+
+    .reset-btn { background: transparent; color: #8B8680; border: 1px solid #2A2A30; padding: 12px 16px; font-size: 11px; letter-spacing: 1.5px; margin-top: 32px; width: 100%; font-weight: 600; }
+    .reset-btn:active { background: #1A1A1E; }
+
+    /* Chart */
+    .chart-wrap { margin-top: 12px; background: #1A1A1E; padding: 16px 12px 12px; }
+    .bar-chart { width: 100%; height: 180px; }
+    .bar-axis-lbl { font-size: 9px; fill: #8B8680; font-family: ui-monospace, monospace; }
+    .bar-fill { fill: #E5C547; }
+  </style>
+</head>
+<body>
+  <div id="app" class="app"></div>
+
+  <script>
+    // ============================================================
+    // DONNÉES DU PROGRAMME
+    // ============================================================
+    const PROGRAM = [
+      { n: 1, block: 'Accumulation', days: [
+        { n: 1, label: 'Lundi', name: 'Squat + OHP', ex: [
+          { name: 'Squat compétition', sets: 4, reps: 4, weight: 175, rpe: 7, rest: 240, main: true, key: 'squat' },
+          { name: 'Pause squat 2s', sets: 3, reps: 5, weight: 150, rpe: 7, rest: 180, key: 'pause-squat' },
+          { name: 'Overhead press', sets: 3, reps: 5, weight: 75, rpe: 7, rest: 180, key: 'ohp', main: true },
+          { name: 'Bulgarian split squat', sets: 3, reps: '8/jambe', rest: 120, key: 'bulgarian' },
+          { name: 'Leg curl couché', sets: 3, reps: 10, rest: 90, key: 'leg-curl' },
+          { name: 'Gainage', sets: 3, reps: '30s', rest: 60, key: 'gainage' }
+        ]},
+        { n: 2, label: 'Mercredi', name: 'Bench + Dos', ex: [
+          { name: 'Board press 2 planches', sets: 4, reps: 5, weight: 102.5, rpe: 7, rest: 240, main: true, key: 'board-2' },
+          { name: 'Flat DB bench', sets: 3, reps: 8, note: '~32,5-35 kg/main, semi-pronation', rest: 150, key: 'db-bench' },
+          { name: 'Tirage horizontal poulie', sets: 4, reps: 10, rest: 90, key: 'row-cable' },
+          { name: 'Face pull', sets: 3, reps: 15, rest: 60, key: 'face-pull' },
+          { name: 'Triceps haute poulie', sets: 3, reps: 12, rest: 60, key: 'triceps' },
+          { name: 'Rotation externe élastique', sets: 3, reps: '15/bras', rest: 45, key: 'er' }
+        ]},
+        { n: 3, label: 'Vendredi', name: 'Deadlift', ex: [
+          { name: 'Soulevé de terre', sets: 3, reps: 3, weight: 245, rpe: 7, rest: 300, main: true, key: 'dl' },
+          { name: 'Romanian deadlift', sets: 3, reps: 8, weight: 150, rest: 180, key: 'rdl' },
+          { name: '45° back extension lestée', sets: 3, reps: 10, note: '10-15 kg', rest: 90, key: 'back-ext' },
+          { name: 'Tirage barre buste penché', sets: 3, reps: 8, weight: 90, rest: 120, key: 'row-bb' },
+          { name: 'Élévations latérales', sets: 3, reps: 15, note: '6-8 kg/main', rest: 60, key: 'lat-raise' }
+        ]},
+        { n: 4, label: 'Samedi', name: 'Spoto + High bar', ex: [
+          { name: 'Spoto press', sets: 4, reps: 5, weight: 92.5, rpe: 7, rest: 180, main: true, key: 'spoto' },
+          { name: 'High bar squat', sets: 3, reps: 5, weight: 157.5, rpe: 7, rest: 180, key: 'high-bar' },
+          { name: 'Tractions lestées', sets: 4, reps: '6-8', note: '+10 kg', rest: 120, key: 'pullups' },
+          { name: 'Skullcrushers', sets: 3, reps: 10, weight: 45, rest: 90, key: 'skull' },
+          { name: 'Pull-apart élastique', sets: 3, reps: 20, rest: 45, key: 'pull-apart' }
+        ]}
+      ]},
+      { n: 2, block: 'Accumulation', days: [
+        { n: 1, label: 'Lundi', name: 'Squat + OHP', ex: [
+          { name: 'Squat compétition', sets: 4, reps: 4, weight: 180, rpe: 7.5, rest: 240, main: true, key: 'squat' },
+          { name: 'Pause squat 2s', sets: 3, reps: 5, weight: 155, rpe: 7.5, rest: 180, key: 'pause-squat' },
+          { name: 'Overhead press', sets: 3, reps: 5, weight: 77.5, rpe: 7.5, rest: 180, key: 'ohp', main: true },
+          { name: 'Bulgarian split squat', sets: 3, reps: '8/jambe', rest: 120, key: 'bulgarian' },
+          { name: 'Leg curl couché', sets: 3, reps: 12, rest: 90, key: 'leg-curl' },
+          { name: 'Gainage', sets: 3, reps: '40s', rest: 60, key: 'gainage' }
+        ]},
+        { n: 2, label: 'Mercredi', name: 'Bench + Dos', ex: [
+          { name: 'Board press 2 planches', sets: 5, reps: 4, weight: 110, rpe: 7.5, rest: 240, main: true, key: 'board-2' },
+          { name: 'Flat DB bench', sets: 3, reps: 8, note: '+2,5 kg/main vs S1', rest: 150, key: 'db-bench' },
+          { name: 'Tirage horizontal poulie', sets: 4, reps: 12, rest: 90, key: 'row-cable' },
+          { name: 'Face pull', sets: 3, reps: 15, rest: 60, key: 'face-pull' },
+          { name: 'Triceps haute poulie', sets: 4, reps: 10, rest: 60, key: 'triceps' },
+          { name: 'Rotation externe élastique', sets: 3, reps: '15/bras', rest: 45, key: 'er' }
+        ]},
+        { n: 3, label: 'Vendredi', name: 'Deadlift', ex: [
+          { name: 'Soulevé de terre', sets: 3, reps: 3, weight: 250, rpe: 7.5, rest: 300, main: true, key: 'dl' },
+          { name: 'Romanian deadlift', sets: 3, reps: 8, weight: 160, rest: 180, key: 'rdl' },
+          { name: '45° back extension lestée', sets: 3, reps: 12, note: '12,5-17,5 kg', rest: 90, key: 'back-ext' },
+          { name: 'Tirage barre buste penché', sets: 4, reps: 8, weight: 92.5, rest: 120, key: 'row-bb' },
+          { name: 'Élévations latérales', sets: 3, reps: 15, rest: 60, key: 'lat-raise' }
+        ]},
+        { n: 4, label: 'Samedi', name: 'Spoto + High bar', ex: [
+          { name: 'Spoto press', sets: 4, reps: 5, weight: 95, rpe: 7.5, rest: 180, main: true, key: 'spoto' },
+          { name: 'High bar squat', sets: 3, reps: 5, weight: 160, rpe: 7.5, rest: 180, key: 'high-bar' },
+          { name: 'Tractions lestées', sets: 4, reps: '6-8', note: '+12,5 kg', rest: 120, key: 'pullups' },
+          { name: 'Skullcrushers', sets: 3, reps: 10, weight: 47.5, rest: 90, key: 'skull' },
+          { name: 'Pull-apart élastique', sets: 3, reps: 25, rest: 45, key: 'pull-apart' }
+        ]}
+      ]},
+      { n: 3, block: 'Accumulation', days: [
+        { n: 1, label: 'Lundi', name: 'Squat + OHP', ex: [
+          { name: 'Squat compétition', sets: 5, reps: 3, weight: 187.5, rpe: 8, rest: 240, main: true, key: 'squat' },
+          { name: 'Pause squat 2s', sets: 3, reps: 4, weight: 165, rpe: 8, rest: 180, key: 'pause-squat' },
+          { name: 'Overhead press', sets: 4, reps: 4, weight: 82.5, rpe: 8, rest: 180, key: 'ohp', main: true },
+          { name: 'Bulgarian split squat', sets: 3, reps: '10/jambe', rest: 120, key: 'bulgarian' },
+          { name: 'Leg curl couché', sets: 4, reps: 10, rest: 90, key: 'leg-curl' },
+          { name: 'Gainage', sets: 3, reps: '45s', rest: 60, key: 'gainage' }
+        ]},
+        { n: 2, label: 'Mercredi', name: 'Bench + Dos', ex: [
+          { name: 'Board press 2 planches', sets: 5, reps: 3, weight: 115, rpe: 8, rest: 240, main: true, key: 'board-2' },
+          { name: 'Flat DB bench', sets: 4, reps: 6, note: '+2,5 kg/main vs S2', rest: 150, key: 'db-bench' },
+          { name: 'Tirage horizontal poulie', sets: 5, reps: 10, rest: 90, key: 'row-cable' },
+          { name: 'Face pull', sets: 4, reps: 15, rest: 60, key: 'face-pull' },
+          { name: 'Triceps haute poulie', sets: 4, reps: 10, rest: 60, key: 'triceps' },
+          { name: 'Rotation externe élastique', sets: 3, reps: '20/bras', rest: 45, key: 'er' }
+        ]},
+        { n: 3, label: 'Vendredi', name: 'Deadlift', ex: [
+          { name: 'Soulevé de terre', sets: 3, reps: 2, weight: 265, rpe: 8, rest: 300, main: true, key: 'dl' },
+          { name: 'Romanian deadlift', sets: 3, reps: 6, weight: 170, rest: 180, key: 'rdl' },
+          { name: '45° back extension lestée', sets: 4, reps: 10, note: '15-20 kg', rest: 90, key: 'back-ext' },
+          { name: 'Tirage barre buste penché', sets: 4, reps: 8, weight: 95, rest: 120, key: 'row-bb' },
+          { name: 'Élévations latérales', sets: 3, reps: 15, rest: 60, key: 'lat-raise' }
+        ]},
+        { n: 4, label: 'Samedi', name: 'Spoto + High bar', ex: [
+          { name: 'Spoto press', sets: 5, reps: 4, weight: 100, rpe: 8, rest: 180, main: true, key: 'spoto' },
+          { name: 'High bar squat', sets: 3, reps: 4, weight: 170, rpe: 8, rest: 180, key: 'high-bar' },
+          { name: 'Tractions lestées', sets: 5, reps: 6, note: '+15 kg', rest: 120, key: 'pullups' },
+          { name: 'Skullcrushers', sets: 4, reps: 8, weight: 50, rest: 90, key: 'skull' },
+          { name: 'Pull-apart élastique', sets: 3, reps: 25, rest: 45, key: 'pull-apart' }
+        ]}
+      ]},
+      { n: 4, block: 'Décharge', days: [
+        { n: 1, label: 'Lundi', name: 'Squat léger', ex: [
+          { name: 'Squat compétition', sets: 3, reps: 3, weight: 145, rpe: 6, rest: 180, main: true, key: 'squat' },
+          { name: 'Bulgarian split squat', sets: 2, reps: '8/jambe', note: 'léger', rest: 90, key: 'bulgarian' },
+          { name: 'Gainage', sets: 2, reps: '30s', rest: 45, key: 'gainage' }
+        ]},
+        { n: 2, label: 'Mercredi', name: 'Bench léger', ex: [
+          { name: 'Board press 2 planches', sets: 3, reps: 5, weight: 85, rpe: 6, rest: 180, main: true, key: 'board-2' },
+          { name: 'Face pull', sets: 3, reps: 15, rest: 60, key: 'face-pull' },
+          { name: 'Rotation externe élastique', sets: 3, reps: '15/bras', rest: 45, key: 'er' }
+        ]},
+        { n: 3, label: 'Vendredi', name: 'DL léger', ex: [
+          { name: 'Soulevé de terre', sets: 2, reps: 3, weight: 195, rpe: 6, rest: 240, main: true, key: 'dl' },
+          { name: 'Romanian deadlift léger', sets: 2, reps: 8, weight: 130, rest: 120, key: 'rdl' },
+          { name: '45° back extension', sets: 2, reps: 10, note: 'léger', rest: 60, key: 'back-ext' }
+        ]},
+        { n: 4, label: 'Samedi', name: 'Repos / Mobilité', ex: [
+          { name: 'Mobilité épaule 15 min', sets: 1, reps: '15 min', rest: 0, note: 'pull-apart, rotations, étirements', key: 'mobility' }
+        ]}
+      ]},
+      { n: 5, block: 'Intensification', days: [
+        { n: 1, label: 'Lundi', name: 'Squat + OHP', ex: [
+          { name: 'Squat compétition', sets: 4, reps: 3, weight: 192.5, rpe: 8, rest: 300, main: true, key: 'squat' },
+          { name: 'Pause squat 2s', sets: 3, reps: 3, weight: 170, rpe: 7.5, rest: 240, key: 'pause-squat' },
+          { name: 'Overhead press', sets: 4, reps: 4, weight: 82.5, rpe: 7.5, rest: 180, key: 'ohp', main: true },
+          { name: 'Bulgarian split squat', sets: 3, reps: '6/jambe', rest: 120, key: 'bulgarian' },
+          { name: 'Leg curl couché', sets: 3, reps: 8, rest: 90, key: 'leg-curl' },
+          { name: 'Gainage', sets: 3, reps: '45s', rest: 60, key: 'gainage' }
+        ]},
+        { n: 2, label: 'Mercredi', name: 'Bench + Dos', ex: [
+          { name: 'Board press 1 planche (pause 1s)', sets: 4, reps: 4, weight: 105, rpe: 7.5, rest: 240, main: true, key: 'board-1' },
+          { name: 'Flat DB bench', sets: 3, reps: 8, note: '+2,5 kg vs S3', rest: 150, key: 'db-bench' },
+          { name: 'Tirage horizontal poulie', sets: 4, reps: 8, rest: 90, key: 'row-cable' },
+          { name: 'Face pull', sets: 3, reps: 15, rest: 60, key: 'face-pull' },
+          { name: 'Triceps poulie', sets: 3, reps: 10, rest: 60, key: 'triceps' },
+          { name: 'Rotation externe élastique', sets: 3, reps: '15/bras', rest: 45, key: 'er' }
+        ]},
+        { n: 3, label: 'Vendredi', name: 'Deadlift', ex: [
+          { name: 'Soulevé de terre', sets: 3, reps: 2, weight: 270, rpe: 8, rest: 300, main: true, key: 'dl' },
+          { name: 'Romanian deadlift', sets: 3, reps: 6, weight: 185, rest: 180, key: 'rdl' },
+          { name: '45° back extension lestée', sets: 3, reps: 10, note: '15-20 kg', rest: 90, key: 'back-ext' },
+          { name: 'Tirage barre buste penché', sets: 3, reps: 8, weight: 95, rest: 120, key: 'row-bb' }
+        ]},
+        { n: 4, label: 'Samedi', name: 'Bench ROM + High bar', ex: [
+          { name: 'Bench prise comp. ROM complet (pause 1s)', sets: 4, reps: 3, weight: 100, rpe: 7, rest: 240, main: true, key: 'bench-comp' },
+          { name: 'High bar squat', sets: 3, reps: 4, weight: 170, rpe: 7.5, rest: 180, key: 'high-bar' },
+          { name: 'Tractions lestées', sets: 4, reps: '5-6', note: '+15 kg', rest: 120, key: 'pullups' },
+          { name: 'Skullcrushers', sets: 3, reps: 8, weight: 50, rest: 90, key: 'skull' },
+          { name: 'Pull-apart élastique', sets: 3, reps: 25, rest: 45, key: 'pull-apart' }
+        ]}
+      ]},
+      { n: 6, block: 'Intensification', days: [
+        { n: 1, label: 'Lundi', name: 'Squat + OHP', ex: [
+          { name: 'Squat compétition', sets: 4, reps: 2, weight: 202.5, rpe: 8.5, rest: 300, main: true, key: 'squat' },
+          { name: 'Pause squat 2s', sets: 3, reps: 2, weight: 180, rpe: 8, rest: 240, key: 'pause-squat' },
+          { name: 'Overhead press', sets: 4, reps: 3, weight: 85, rpe: 8, rest: 180, key: 'ohp', main: true },
+          { name: 'Bulgarian split squat', sets: 3, reps: '6/jambe', rest: 120, key: 'bulgarian' },
+          { name: 'Leg curl couché', sets: 3, reps: 8, rest: 90, key: 'leg-curl' },
+          { name: 'Gainage', sets: 3, reps: '45s', rest: 60, key: 'gainage' }
+        ]},
+        { n: 2, label: 'Mercredi', name: 'Bench + Dos', ex: [
+          { name: 'Board press 1 planche', sets: 4, reps: 3, weight: 110, rpe: 8, rest: 240, main: true, key: 'board-1' },
+          { name: 'Flat DB bench', sets: 3, reps: 6, note: '+2,5 kg/main', rest: 150, key: 'db-bench' },
+          { name: 'Tirage horizontal poulie', sets: 4, reps: 8, rest: 90, key: 'row-cable' },
+          { name: 'Face pull', sets: 3, reps: 15, rest: 60, key: 'face-pull' },
+          { name: 'Triceps poulie', sets: 3, reps: 10, rest: 60, key: 'triceps' },
+          { name: 'Rotation externe', sets: 3, reps: '15/bras', rest: 45, key: 'er' }
+        ]},
+        { n: 3, label: 'Vendredi', name: 'Deadlift', ex: [
+          { name: 'Soulevé de terre', sets: 3, reps: 2, weight: 275, rpe: 8.5, rest: 300, main: true, key: 'dl' },
+          { name: 'Romanian deadlift', sets: 3, reps: 5, weight: 195, rest: 180, key: 'rdl' },
+          { name: '45° back extension lestée', sets: 3, reps: 8, note: '17,5-22,5 kg', rest: 90, key: 'back-ext' },
+          { name: 'Tirage barre buste penché', sets: 3, reps: 8, weight: 97.5, rest: 120, key: 'row-bb' }
+        ]},
+        { n: 4, label: 'Samedi', name: 'Bench ROM + High bar', ex: [
+          { name: 'Bench prise comp. ROM complet', sets: 4, reps: 3, weight: 105, rpe: 7.5, rest: 240, main: true, key: 'bench-comp' },
+          { name: 'High bar squat', sets: 3, reps: 3, weight: 180, rpe: 8, rest: 180, key: 'high-bar' },
+          { name: 'Tractions lestées', sets: 4, reps: '5-6', note: '+17,5 kg', rest: 120, key: 'pullups' },
+          { name: 'Skullcrushers', sets: 3, reps: 8, weight: 52.5, rest: 90, key: 'skull' },
+          { name: 'Pull-apart élastique', sets: 3, reps: 25, rest: 45, key: 'pull-apart' }
+        ]}
+      ]},
+      { n: 7, block: 'Intensification', days: [
+        { n: 1, label: 'Lundi', name: 'Squat + OHP', ex: [
+          { name: 'Squat compétition', sets: 3, reps: 2, weight: 207.5, rpe: 9, rest: 300, main: true, key: 'squat' },
+          { name: 'Squat - top single', sets: 1, reps: 1, weight: 215, rpe: 9, rest: 300, note: 'Top single du cycle', key: 'squat-single' },
+          { name: 'Pause squat 2s', sets: 2, reps: 2, weight: 180, rpe: 8, rest: 240, key: 'pause-squat' },
+          { name: 'Overhead press', sets: 3, reps: 3, weight: 87.5, rpe: 8.5, rest: 180, key: 'ohp', main: true },
+          { name: 'Bulgarian split squat', sets: 2, reps: '8/jambe', rest: 120, key: 'bulgarian' },
+          { name: 'Leg curl couché', sets: 3, reps: 10, rest: 90, key: 'leg-curl' },
+          { name: 'Gainage', sets: 2, reps: '60s', rest: 60, key: 'gainage' }
+        ]},
+        { n: 2, label: 'Mercredi', name: 'Bench + Dos', ex: [
+          { name: 'Board press 1 planche', sets: 4, reps: 3, weight: 112.5, rpe: 8.5, rest: 240, main: true, key: 'board-1' },
+          { name: 'Flat DB bench', sets: 3, reps: 6, note: '+2,5 kg/main', rest: 150, key: 'db-bench' },
+          { name: 'Tirage horizontal poulie', sets: 4, reps: 6, rest: 90, key: 'row-cable' },
+          { name: 'Face pull', sets: 3, reps: 15, rest: 60, key: 'face-pull' },
+          { name: 'Triceps poulie', sets: 3, reps: 8, rest: 60, key: 'triceps' },
+          { name: 'Rotation externe', sets: 3, reps: '15/bras', rest: 45, key: 'er' }
+        ]},
+        { n: 3, label: 'Vendredi', name: 'Deadlift', ex: [
+          { name: 'Soulevé de terre', sets: 2, reps: 1, weight: 290, rpe: 9, rest: 300, main: true, key: 'dl' },
+          { name: 'DL back-off', sets: 1, reps: 3, weight: 245, rpe: 8, note: 'Après les singles', rest: 240, key: 'dl-backoff' },
+          { name: 'Romanian deadlift', sets: 2, reps: 6, weight: 185, rest: 180, key: 'rdl' },
+          { name: '45° back extension lestée', sets: 3, reps: 10, rest: 90, key: 'back-ext' },
+          { name: 'Tirage barre', sets: 3, reps: 6, weight: 100, rest: 120, key: 'row-bb' }
+        ]},
+        { n: 4, label: 'Samedi', name: 'Bench ROM + High bar', ex: [
+          { name: 'Bench prise comp. ROM complet', sets: 4, reps: 2, weight: 110, rpe: 8, rest: 240, main: true, key: 'bench-comp' },
+          { name: 'High bar squat', sets: 2, reps: 3, weight: 180, rpe: 8, rest: 180, key: 'high-bar' },
+          { name: 'Tractions lestées', sets: 3, reps: 5, note: '+20 kg', rest: 120, key: 'pullups' },
+          { name: 'Skullcrushers', sets: 3, reps: 6, weight: 55, rest: 90, key: 'skull' },
+          { name: 'Pull-apart élastique', sets: 3, reps: 25, rest: 45, key: 'pull-apart' }
+        ]}
+      ]},
+      { n: 8, block: 'Test', days: [
+        { n: 1, label: 'Lundi', name: 'Squat - Test', ex: [
+          { name: 'Squat compétition - top single', sets: 1, reps: 1, weight: 210, rpe: 9, rest: 300, main: true, note: 'Top single visé 205-215 selon ressenti', key: 'squat' }
+        ]},
+        { n: 2, label: 'Mercredi', name: 'Bench - Test', ex: [
+          { name: 'Bench prise comp. - top single', sets: 1, reps: 1, weight: 115, rpe: 8, rest: 300, main: true, note: 'Si épaule OK. Sinon Board 1pl @ 120 kg', key: 'bench-comp' }
+        ]},
+        { n: 3, label: 'Vendredi', name: 'DL - Test', ex: [
+          { name: 'Soulevé de terre - top single', sets: 1, reps: 1, weight: 290, rpe: 9, rest: 300, main: true, note: 'Top single visé 285-295 selon ressenti', key: 'dl' }
+        ]},
+        { n: 4, label: 'Samedi', name: 'Repos', ex: [
+          { name: 'Récupération complète', sets: 1, reps: '—', rest: 0, key: 'rest' }
+        ]}
+      ]}
+    ];
+
+    // ============================================================
+    // STATE & STORAGE
+    // ============================================================
+    const STORAGE_KEY = 'pl-tracker-progress';
+
+    let state = {
+      view: 'today',
+      activeSession: null,
+      progress: {},
+      openWeek: 1,
+      sessionData: null
+    };
+
+    let timer = { interval: null, secLeft: 0, exName: '', active: false };
+
+    function loadProgress() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (raw) state.progress = JSON.parse(raw);
+      } catch (e) { /* ignore */ }
+    }
+
+    function saveProgress() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state.progress));
+      } catch (e) { console.error('Save failed:', e); }
+    }
+
+    function sessionKey(w, d) { return `s${w}-d${d}`; }
+
+    function findNextSession() {
+      for (const w of PROGRAM) {
+        for (const d of w.days) {
+          const k = sessionKey(w.n, d.n);
+          if (!state.progress[k] || !state.progress[k].completed) {
+            return { week: w.n, day: d.n };
+          }
+        }
+      }
+      return null;
+    }
+
+    function escapeHtml(s) {
+      return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    }
+
+    function formatTime(s) {
+      const m = Math.floor(s / 60);
+      const r = s % 60;
+      return `${m}:${r.toString().padStart(2, '0')}`;
+    }
+
+    // ============================================================
+    // VIEWS
+    // ============================================================
+
+    function renderToday() {
+      const next = findNextSession();
+      const total = PROGRAM.reduce((a, w) => a + w.days.length, 0);
+      const done = Object.values(state.progress).filter(p => p.completed).length;
+      const pct = Math.round((done / total) * 100);
+
+      if (!next) {
+        return `
+          <div class="pad">
+            <h1>TERMINÉ</h1>
+            <div class="subtitle">Programme 8 semaines complété.</div>
+            <div class="big-stat">
+              <div class="big-num">${done}/${total}</div>
+              <div class="big-lbl">séances</div>
+            </div>
+          </div>
+        `;
+      }
+
+      const w = PROGRAM.find(x => x.n === next.week);
+      const d = w.days.find(x => x.n === next.day);
+      const mainEx = d.ex.filter(e => e.main);
+
+      return `
+        <div class="pad">
+          <div class="eyebrow">SEMAINE ${next.week} · ${w.block.toUpperCase()}</div>
+          <h1>${escapeHtml(d.label)}</h1>
+          <div class="subtitle">${escapeHtml(d.name)}</div>
+
+          <div style="margin-top:32px;margin-bottom:32px;">
+            ${mainEx.map(e => `
+              <div class="main-preview">
+                <div class="main-name">${escapeHtml(e.name)}</div>
+                <div class="main-stats">
+                  <span>${e.sets}×${e.reps}</span>
+                  ${e.weight ? `<span class="main-weight"> · ${e.weight} kg</span>` : ''}
+                  ${e.rpe ? `<span class="main-rpe"> · RPE ${e.rpe}</span>` : ''}
+                </div>
+              </div>
+            `).join('')}
+          </div>
+
+          <button class="cta" data-action="start-session" data-week="${next.week}" data-day="${next.day}">
+            DÉMARRER LA SÉANCE
+          </button>
+
+          <div class="progress-block">
+            <div class="progress-lbl">
+              <span>PROGRESSION</span>
+              <span>${done}/${total}</span>
+            </div>
+            <div class="progress-bar">
+              <div class="progress-fill" style="width:${pct}%"></div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderProgram() {
+      const w = PROGRAM.find(x => x.n === state.openWeek);
+
+      return `
+        <div class="pad">
+          <h1>PROGRAMME</h1>
+          <div class="subtitle">8 semaines · 4 séances/sem.</div>
+
+          <div class="week-tabs">
+            ${PROGRAM.map(week => `
+              <button class="week-tab ${week.n === state.openWeek ? 'active' : ''}" data-action="open-week" data-week="${week.n}">
+                S${week.n}
+              </button>
+            `).join('')}
+          </div>
+
+          <div class="block-badge">${escapeHtml(w.block)}</div>
+
+          ${w.days.map(d => {
+            const done = state.progress[sessionKey(w.n, d.n)]?.completed;
+            const exPreview = d.ex.slice(0, 3).map(e => e.name.split(' ')[0]).join(' · ');
+            const more = d.ex.length > 3 ? ` · +${d.ex.length - 3}` : '';
+            return `
+              <button class="day-row ${done ? 'done' : ''}" data-action="start-session" data-week="${w.n}" data-day="${d.n}">
+                <div>
+                  <div class="day-label">${escapeHtml(d.label)}</div>
+                  <div class="day-name">${escapeHtml(d.name)}</div>
+                  <div class="day-ex">${escapeHtml(exPreview)}${more}</div>
+                </div>
+                <div class="day-arrow ${done ? 'done' : ''}">${done ? '✓' : '›'}</div>
+              </button>
+            `;
+          }).join('')}
+        </div>
+      `;
+    }
+
+    function renderSession() {
+      const { week, day } = state.activeSession;
+      const w = PROGRAM.find(x => x.n === week);
+      const d = w.days.find(x => x.n === day);
+      const sd = state.sessionData;
+
+      const totalSets = sd.exercises.reduce((a, e) => a + e.sets.length, 0);
+      const doneSets = sd.exercises.reduce((a, e) => a + e.sets.filter(s => s.done).length, 0);
+      const pct = totalSets ? (doneSets / totalSets) * 100 : 0;
+
+      return `
+        <div class="pad" style="padding-bottom:120px;">
+          <button class="back-btn" data-action="back-to-today">← retour</button>
+
+          <div class="eyebrow">SEMAINE ${week} · ${d.label.toUpperCase()}</div>
+          <h1>${escapeHtml(d.name)}</h1>
+
+          <div class="session-progress">
+            <span>${doneSets}/${totalSets} séries</span>
+            <div class="mini-bar"><div class="mini-bar-fill" style="width:${pct}%"></div></div>
+          </div>
+
+          ${sd.exercises.map((ex, exIdx) => {
+            const def = d.ex[exIdx];
+            return `
+              <div class="ex-card">
+                <div class="ex-name">${escapeHtml(ex.name)}</div>
+                <div class="ex-target">
+                  Cible : ${def.sets}×${def.reps}${def.weight ? ` @ ${def.weight} kg` : ''}${def.rpe ? ` (RPE ${def.rpe})` : ''}
+                </div>
+                ${def.note ? `<div class="ex-note">${escapeHtml(def.note)}</div>` : ''}
+
+                <div class="sets-grid">
+                  <div class="set-head">#</div>
+                  <div class="set-head">kg</div>
+                  <div class="set-head">reps</div>
+                  <div class="set-head">RPE</div>
+                  <div class="set-head">✓</div>
+
+                  ${ex.sets.map((set, setIdx) => `
+                    <div class="set-num">${setIdx + 1}</div>
+                    <input class="set-input" type="number" step="2.5" inputmode="decimal"
+                      data-ex="${exIdx}" data-set="${setIdx}" data-field="weight"
+                      value="${set.weight ?? ''}" placeholder="—">
+                    <input class="set-input" type="text" inputmode="numeric"
+                      data-ex="${exIdx}" data-set="${setIdx}" data-field="reps"
+                      value="${set.reps ?? ''}" placeholder="—">
+                    <input class="set-input" type="number" step="0.5" min="1" max="10" inputmode="decimal"
+                      data-ex="${exIdx}" data-set="${setIdx}" data-field="rpe"
+                      value="${set.rpe ?? ''}" placeholder="—">
+                    <button class="set-check ${set.done ? 'done' : ''}"
+                      data-action="toggle-set" data-ex="${exIdx}" data-set="${setIdx}"
+                      data-rest="${def.rest}" data-exname="${escapeHtml(ex.name)}">
+                      ${set.done ? '✓' : ''}
+                    </button>
+                  `).join('')}
+                </div>
+              </div>
+            `;
+          }).join('')}
+
+          <button class="cta" data-action="end-session">TERMINER LA SÉANCE</button>
+        </div>
+
+        ${timer.active ? `
+          <div class="timer">
+            <div class="timer-lbl">REPOS · ${escapeHtml(timer.exName)}</div>
+            <div class="timer-num" id="timer-display">${formatTime(timer.secLeft)}</div>
+            <button class="timer-skip" data-action="skip-timer">passer</button>
+          </div>
+        ` : ''}
+      `;
+    }
+
+    function renderStats() {
+      const completed = Object.entries(state.progress)
+        .filter(([_, s]) => s.completed)
+        .map(([k, s]) => ({ k, ...s }));
+
+      const total = PROGRAM.reduce((a, w) => a + w.days.length, 0);
+      const doneCount = completed.length;
+      const pct = total ? Math.round((doneCount / total) * 100) : 0;
+
+      // PRs by main lift key
+      const mainLifts = ['squat', 'bench-comp', 'dl', 'ohp', 'spoto', 'board-2', 'board-1'];
+      const labels = {
+        'squat': 'Squat', 'bench-comp': 'Bench', 'dl': 'Deadlift',
+        'ohp': 'OHP', 'spoto': 'Spoto press', 'board-2': 'Board 2pl', 'board-1': 'Board 1pl'
+      };
+      const prs = {};
+      completed.forEach(s => {
+        s.exercises.forEach(e => {
+          const def = PROGRAM.flatMap(w => w.days).flatMap(d => d.ex).find(x => x.name === e.name);
+          const key = def?.key;
+          if (key && mainLifts.includes(key)) {
+            const top = e.sets.filter(set => set.done && set.weight)
+              .reduce((m, set) => set.weight > (m?.weight || 0) ? set : m, null);
+            if (top && (!prs[key] || top.weight > prs[key].weight)) {
+              prs[key] = { weight: top.weight, reps: top.reps };
+            }
+          }
+        });
+      });
+
+      // Volume per session
+      const volData = completed.map(s => {
+        const vol = s.exercises.reduce((a, e) => {
+          return a + e.sets.reduce((b, set) => {
+            if (set.done && set.weight && set.reps) {
+              const r = parseInt(set.reps) || 0;
+              return b + (set.weight * r);
+            }
+            return b;
+          }, 0);
+        }, 0);
+        return { label: s.k.replace('s', 'S').replace('-d', 'J'), vol: Math.round(vol) };
+      });
+
+      // Build simple SVG bar chart
+      let chartHtml = '';
+      if (volData.length > 0) {
+        const W = 300, H = 160, pad = { l: 30, r: 8, t: 10, b: 24 };
+        const maxVol = Math.max(...volData.map(v => v.vol), 1);
+        const barW = (W - pad.l - pad.r) / volData.length * 0.75;
+        const barGap = (W - pad.l - pad.r) / volData.length * 0.25;
+        const chartH = H - pad.t - pad.b;
+        chartHtml = `
+          <div class="chart-wrap">
+            <svg class="bar-chart" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">
+              ${[0, 0.5, 1].map(t => {
+                const y = pad.t + chartH * (1 - t);
+                const v = Math.round(maxVol * t);
+                return `
+                  <line x1="${pad.l}" y1="${y}" x2="${W - pad.r}" y2="${y}" stroke="#2A2A30" stroke-dasharray="2,4"/>
+                  <text x="${pad.l - 4}" y="${y + 3}" text-anchor="end" class="bar-axis-lbl">${v}</text>
+                `;
+              }).join('')}
+              ${volData.map((v, i) => {
+                const x = pad.l + i * (barW + barGap) + barGap / 2;
+                const h = (v.vol / maxVol) * chartH;
+                const y = pad.t + chartH - h;
+                return `
+                  <rect class="bar-fill" x="${x}" y="${y}" width="${barW}" height="${h}"/>
+                  <text x="${x + barW / 2}" y="${H - pad.b + 12}" text-anchor="middle" class="bar-axis-lbl">${escapeHtml(v.label)}</text>
+                `;
+              }).join('')}
+            </svg>
+          </div>
+        `;
+      }
+
+      return `
+        <div class="pad">
+          <h1>STATISTIQUES</h1>
+          <div class="subtitle">Progression du cycle</div>
+
+          <div class="stats-grid">
+            <div class="stat-box">
+              <div class="stat-num">${doneCount}</div>
+              <div class="stat-lbl">séances · /${total}</div>
+            </div>
+            <div class="stat-box">
+              <div class="stat-num">${pct}%</div>
+              <div class="stat-lbl">complétion</div>
+            </div>
+          </div>
+
+          ${Object.keys(prs).length > 0 ? `
+            <div class="section-head">RECORDS DU CYCLE</div>
+            ${Object.entries(prs).map(([k, pr]) => `
+              <div class="pr-row">
+                <span class="pr-name">${labels[k]}</span>
+                <span class="pr-val">${pr.weight} kg × ${pr.reps}</span>
+              </div>
+            `).join('')}
+          ` : ''}
+
+          ${volData.length > 0 ? `
+            <div class="section-head">VOLUME PAR SÉANCE (kg)</div>
+            ${chartHtml}
+          ` : ''}
+
+          ${doneCount === 0 ? `<div class="empty">Termine ta première séance pour voir tes statistiques.</div>` : ''}
+
+          ${doneCount > 0 ? `
+            <button class="reset-btn" data-action="reset-progress">RÉINITIALISER LA PROGRESSION</button>
+          ` : ''}
+        </div>
+      `;
+    }
+
+    function renderNav() {
+      if (state.view === 'session') return '';
+      return `
+        <nav class="nav">
+          <button class="tab-btn ${state.view === 'today' ? 'active' : ''}" data-action="nav" data-view="today">
+            <div class="tab-icon">◉</div>
+            <div class="tab-label">Aujourd'hui</div>
+          </button>
+          <button class="tab-btn ${state.view === 'program' ? 'active' : ''}" data-action="nav" data-view="program">
+            <div class="tab-icon">≡</div>
+            <div class="tab-label">Programme</div>
+          </button>
+          <button class="tab-btn ${state.view === 'stats' ? 'active' : ''}" data-action="nav" data-view="stats">
+            <div class="tab-icon">▲</div>
+            <div class="tab-label">Stats</div>
+          </button>
+        </nav>
+      `;
+    }
+
+    function render() {
+      const app = document.getElementById('app');
+      let content = '';
+      if (state.view === 'today') content = renderToday();
+      else if (state.view === 'program') content = renderProgram();
+      else if (state.view === 'session') content = renderSession();
+      else if (state.view === 'stats') content = renderStats();
+      app.innerHTML = content + renderNav();
+    }
+
+    // ============================================================
+    // ACTIONS
+    // ============================================================
+
+    function startSession(week, day) {
+      const w = PROGRAM.find(x => x.n === week);
+      const d = w.days.find(x => x.n === day);
+      const k = sessionKey(week, day);
+
+      if (state.progress[k]) {
+        state.sessionData = state.progress[k];
+      } else {
+        state.sessionData = {
+          completed: false,
+          date: new Date().toISOString(),
+          exercises: d.ex.map(e => ({
+            key: e.key,
+            name: e.name,
+            sets: Array(e.sets).fill(null).map(() => ({
+              done: false,
+              weight: e.weight ?? null,
+              reps: e.reps,
+              rpe: null
+            }))
+          }))
+        };
+      }
+
+      state.activeSession = { week, day };
+      state.view = 'session';
+      render();
+    }
+
+    function endSession() {
+      const k = sessionKey(state.activeSession.week, state.activeSession.day);
+      state.sessionData.completed = true;
+      state.sessionData.date = new Date().toISOString();
+      state.progress[k] = state.sessionData;
+      saveProgress();
+      state.activeSession = null;
+      state.sessionData = null;
+      stopTimer();
+      state.view = 'today';
+      render();
+    }
+
+    function backToToday() {
+      // Save partial progress
+      if (state.sessionData && state.activeSession) {
+        const k = sessionKey(state.activeSession.week, state.activeSession.day);
+        // Only save if at least one set checked
+        const hasProgress = state.sessionData.exercises.some(e => e.sets.some(s => s.done));
+        if (hasProgress) {
+          state.progress[k] = state.sessionData;
+          saveProgress();
+        }
+      }
+      state.activeSession = null;
+      state.sessionData = null;
+      stopTimer();
+      state.view = 'today';
+      render();
+    }
+
+    function toggleSet(exIdx, setIdx, restSec, exName) {
+      const set = state.sessionData.exercises[exIdx].sets[setIdx];
+      set.done = !set.done;
+
+      // Save partial progress
+      const k = sessionKey(state.activeSession.week, state.activeSession.day);
+      state.progress[k] = state.sessionData;
+      saveProgress();
+
+      // Start timer if just completed
+      if (set.done && restSec > 0) {
+        startTimer(restSec, exName);
+      }
+      render();
+    }
+
+    function updateSet(exIdx, setIdx, field, value) {
+      const set = state.sessionData.exercises[exIdx].sets[setIdx];
+      if (field === 'weight' || field === 'rpe') {
+        set[field] = value ? parseFloat(value) : null;
+      } else {
+        set[field] = value;
+      }
+      // Save without re-render
+      const k = sessionKey(state.activeSession.week, state.activeSession.day);
+      state.progress[k] = state.sessionData;
+      saveProgress();
+    }
+
+    function startTimer(sec, exName) {
+      stopTimer();
+      timer.secLeft = sec;
+      timer.exName = exName;
+      timer.active = true;
+      timer.interval = setInterval(() => {
+        timer.secLeft--;
+        if (timer.secLeft <= 0) {
+          stopTimer();
+          if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
+          render();
+        } else {
+          const tEl = document.getElementById('timer-display');
+          if (tEl) tEl.textContent = formatTime(timer.secLeft);
+        }
+      }, 1000);
+    }
+
+    function stopTimer() {
+      if (timer.interval) clearInterval(timer.interval);
+      timer.interval = null;
+      timer.active = false;
+      timer.secLeft = 0;
+    }
+
+    function resetProgress() {
+      if (confirm('Effacer toute la progression ? Cette action est irréversible.')) {
+        state.progress = {};
+        saveProgress();
+        render();
+      }
+    }
+
+    // ============================================================
+    // EVENT DELEGATION
+    // ============================================================
+
+    document.addEventListener('click', (e) => {
+      const btn = e.target.closest('[data-action]');
+      if (!btn) return;
+      const action = btn.dataset.action;
+
+      if (action === 'nav') {
+        state.view = btn.dataset.view;
+        render();
+      } else if (action === 'start-session') {
+        startSession(parseInt(btn.dataset.week), parseInt(btn.dataset.day));
+      } else if (action === 'open-week') {
+        state.openWeek = parseInt(btn.dataset.week);
+        render();
+      } else if (action === 'back-to-today') {
+        backToToday();
+      } else if (action === 'toggle-set') {
+        toggleSet(
+          parseInt(btn.dataset.ex),
+          parseInt(btn.dataset.set),
+          parseInt(btn.dataset.rest),
+          btn.dataset.exname
+        );
+      } else if (action === 'end-session') {
+        endSession();
+      } else if (action === 'skip-timer') {
+        stopTimer();
+        render();
+      } else if (action === 'reset-progress') {
+        resetProgress();
+      }
+    });
+
+    document.addEventListener('input', (e) => {
+      const inp = e.target;
+      if (inp.dataset.field) {
+        updateSet(
+          parseInt(inp.dataset.ex),
+          parseInt(inp.dataset.set),
+          inp.dataset.field,
+          inp.value
+        );
+      }
+    });
+
+    // ============================================================
+    // INIT
+    // ============================================================
+
+    loadProgress();
+    render();
+
+    // Service worker
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js').catch(() => {});
+      });
+    }
+  </script>
+</body>
+</html>
