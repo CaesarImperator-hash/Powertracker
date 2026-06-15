@@ -116,6 +116,49 @@
     .tab-icon { font-size: 18px; line-height: 1; }
     .tab-label { font-size: 10px; margin-top: 4px; letter-spacing: 0.5px; }
 
+    /* Today extras */
+    .steps-widget {
+      background: #1A1A1E; padding: 14px 16px; margin-top: 20px; margin-bottom: 24px;
+      display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    }
+    .steps-info { flex: 1; min-width: 0; }
+    .steps-label { font-size: 10px; letter-spacing: 1.5px; color: #8B8680; font-weight: 600; margin-bottom: 4px; }
+    .steps-num {
+      font-size: 28px; font-weight: 800; color: #E5C547;
+      font-family: ui-monospace, 'SF Mono', Menlo, monospace; letter-spacing: -0.5px; line-height: 1;
+    }
+    .steps-actions { display: flex; flex-direction: column; gap: 6px; }
+    .steps-btn-sync, .steps-btn-edit {
+      background: transparent; color: #8B8680; border: 1px solid #2A2A30;
+      padding: 7px 10px; font-size: 10px; letter-spacing: 1px; font-weight: 600;
+      white-space: nowrap; font-family: inherit;
+    }
+    .steps-btn-sync { color: #E5C547; border-color: #E5C547; }
+    .steps-btn-sync:active { background: rgba(229,197,71,0.1); }
+    .steps-btn-edit:active { background: #2A2A30; }
+
+    .session-section { margin-top: 24px; margin-bottom: 24px; }
+    .section-label { font-size: 10px; letter-spacing: 2px; color: #8B8680; font-weight: 700; margin-bottom: 8px; }
+    .session-day-name {
+      font-size: 22px; font-weight: 800; color: #F2EBDC;
+      font-family: Impact, 'Helvetica Neue Condensed', sans-serif;
+      text-transform: uppercase; letter-spacing: -0.5px; line-height: 1.1;
+    }
+    .session-week { font-size: 11px; color: #8B8680; letter-spacing: 1px; margin-top: 6px; margin-bottom: 16px; font-weight: 600; }
+    .ex-list { margin-bottom: 20px; }
+    .ex-list-row {
+      display: flex; justify-content: space-between; align-items: baseline;
+      padding: 10px 0; border-bottom: 1px solid #2A2A30; gap: 12px;
+    }
+    .ex-list-row:last-child { border-bottom: none; }
+    .ex-list-name { font-size: 13px; color: #F2EBDC; flex: 1; }
+    .ex-mark { color: #2A2A30; margin-right: 6px; font-size: 9px; }
+    .ex-mark.main { color: #E5C547; }
+    .ex-list-stats {
+      font-size: 12px; color: #E5C547; font-family: ui-monospace, 'SF Mono', Menlo, monospace;
+      white-space: nowrap; font-weight: 600;
+    }
+
     /* Stats */
     .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 24px; }
     .stat-box { background: #1A1A1E; padding: 16px; }
@@ -380,11 +423,13 @@
     // STATE & STORAGE
     // ============================================================
     const STORAGE_KEY = 'pl-tracker-progress';
+    const STORAGE_STEPS_KEY = 'pl-tracker-steps';
 
     let state = {
       view: 'today',
       activeSession: null,
       progress: {},
+      steps: {},
       openWeek: 1,
       sessionData: null
     };
@@ -404,7 +449,73 @@
       } catch (e) { console.error('Save failed:', e); }
     }
 
+    function loadSteps() {
+      try {
+        const raw = localStorage.getItem(STORAGE_STEPS_KEY);
+        if (raw) state.steps = JSON.parse(raw);
+      } catch (e) { /* ignore */ }
+    }
+
+    function saveSteps() {
+      try {
+        localStorage.setItem(STORAGE_STEPS_KEY, JSON.stringify(state.steps));
+      } catch (e) { console.error('Save steps failed:', e); }
+    }
+
+    function handleUrlParams() {
+      const params = new URLSearchParams(window.location.search);
+      const steps = params.get('steps');
+      if (steps !== null) {
+        const n = parseInt(steps, 10);
+        if (!isNaN(n) && n >= 0) {
+          setTodaySteps(n);
+          window.history.replaceState({}, '', window.location.pathname);
+        }
+      }
+    }
+
     function sessionKey(w, d) { return `s${w}-d${d}`; }
+
+    function getTodayDateKey() {
+      const d = new Date();
+      return d.toISOString().slice(0, 10);
+    }
+
+    function getTodayInfo() {
+      const d = new Date();
+      const dayOfWeek = d.getDay(); // 0=Sun, 1=Mon, ..., 6=Sat
+      const programDayMap = { 1: 1, 3: 2, 5: 3, 6: 4 };
+      const todayDayN = programDayMap[dayOfWeek] || null;
+      const dateStr = d.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' });
+      return { dayOfWeek, todayDayN, dateStr };
+    }
+
+    function getTodaySteps() {
+      const v = state.steps[getTodayDateKey()];
+      return (v === undefined || v === null) ? null : v;
+    }
+
+    function setTodaySteps(n) {
+      state.steps[getTodayDateKey()] = n;
+      saveSteps();
+    }
+
+    function findTodaySession() {
+      const next = findNextSession();
+      if (!next) return null;
+      const ti = getTodayInfo();
+      if (ti.todayDayN === null) {
+        return { type: 'rest', next };
+      }
+      if (next.day === ti.todayDayN) {
+        return { type: 'today', week: next.week, day: next.day };
+      }
+      const todaysKey = sessionKey(next.week, ti.todayDayN);
+      if (state.progress[todaysKey] && state.progress[todaysKey].completed) {
+        return { type: 'done-today', next };
+      }
+      return { type: 'upcoming', next };
+    }
 
     function findNextSession() {
       for (const w of PROGRAM) {
@@ -432,17 +543,38 @@
     // VIEWS
     // ============================================================
 
+    function renderStepsWidget(steps) {
+      const display = steps !== null ? steps.toLocaleString('fr-FR') : '—';
+      return `
+        <div class="steps-widget">
+          <div class="steps-info">
+            <div class="steps-label">PAS AUJOURD'HUI</div>
+            <div class="steps-num">${display}</div>
+          </div>
+          <div class="steps-actions">
+            <button class="steps-btn-sync" data-action="sync-steps">↻ Santé</button>
+            <button class="steps-btn-edit" data-action="edit-steps">Manuel</button>
+          </div>
+        </div>
+      `;
+    }
+
     function renderToday() {
-      const next = findNextSession();
       const total = PROGRAM.reduce((a, w) => a + w.days.length, 0);
       const done = Object.values(state.progress).filter(p => p.completed).length;
       const pct = Math.round((done / total) * 100);
+      const ti = getTodayInfo();
+      const steps = getTodaySteps();
+      const stepsBlock = renderStepsWidget(steps);
+      const dateLine = ti.dateStr.charAt(0).toUpperCase() + ti.dateStr.slice(1);
 
-      if (!next) {
+      if (!findNextSession()) {
         return `
           <div class="pad">
-            <h1>TERMINÉ</h1>
+            <div class="eyebrow">${escapeHtml(dateLine)}</div>
+            <h1>Terminé</h1>
             <div class="subtitle">Programme 8 semaines complété.</div>
+            ${stepsBlock}
             <div class="big-stat">
               <div class="big-num">${done}/${total}</div>
               <div class="big-lbl">séances</div>
@@ -451,32 +583,63 @@
         `;
       }
 
-      const w = PROGRAM.find(x => x.n === next.week);
-      const d = w.days.find(x => x.n === next.day);
-      const mainEx = d.ex.filter(e => e.main);
+      const info = findTodaySession();
+      let sectionLabel = 'PROCHAINE SÉANCE';
+      let buttonLabel = 'VOIR LA PROCHAINE SÉANCE';
+      let targetWeek, targetDay;
 
-      return `
-        <div class="pad">
-          <div class="eyebrow">SEMAINE ${next.week} · ${w.block.toUpperCase()}</div>
-          <h1>${escapeHtml(d.label)}</h1>
-          <div class="subtitle">${escapeHtml(d.name)}</div>
+      if (info.type === 'today') {
+        sectionLabel = 'SÉANCE DU JOUR';
+        buttonLabel = 'DÉMARRER LA SÉANCE';
+        targetWeek = info.week;
+        targetDay = info.day;
+      } else if (info.type === 'done-today') {
+        sectionLabel = 'TERMINÉE AUJOURD\'HUI · PROCHAINE :';
+        targetWeek = info.next.week;
+        targetDay = info.next.day;
+      } else if (info.type === 'rest') {
+        sectionLabel = 'JOUR DE REPOS · PROCHAINE SÉANCE';
+        targetWeek = info.next.week;
+        targetDay = info.next.day;
+      } else {
+        sectionLabel = 'PROCHAINE SÉANCE';
+        targetWeek = info.next.week;
+        targetDay = info.next.day;
+      }
 
-          <div style="margin-top:32px;margin-bottom:32px;">
-            ${mainEx.map(e => `
-              <div class="main-preview">
-                <div class="main-name">${escapeHtml(e.name)}</div>
-                <div class="main-stats">
-                  <span>${e.sets}×${e.reps}</span>
-                  ${e.weight ? `<span class="main-weight"> · ${e.weight} kg</span>` : ''}
-                  ${e.rpe ? `<span class="main-rpe"> · RPE ${e.rpe}</span>` : ''}
+      const w = PROGRAM.find(x => x.n === targetWeek);
+      const d = w.days.find(x => x.n === targetDay);
+
+      const sessionBlock = `
+        <div class="session-section">
+          <div class="section-label">${sectionLabel}</div>
+          <div class="session-day-name">${escapeHtml(d.label)} · ${escapeHtml(d.name)}</div>
+          <div class="session-week">S${w.n} · ${escapeHtml(w.block)}</div>
+
+          <div class="ex-list">
+            ${d.ex.map(e => `
+              <div class="ex-list-row">
+                <div class="ex-list-name">
+                  <span class="ex-mark ${e.main ? 'main' : ''}">${e.main ? '●' : '○'}</span>
+                  ${escapeHtml(e.name)}
                 </div>
+                <div class="ex-list-stats">${e.sets}×${e.reps}${e.weight ? ` · ${e.weight}kg` : ''}${e.rpe ? ` · RPE ${e.rpe}` : ''}</div>
               </div>
             `).join('')}
           </div>
 
-          <button class="cta" data-action="start-session" data-week="${next.week}" data-day="${next.day}">
-            DÉMARRER LA SÉANCE
-          </button>
+          <button class="cta" data-action="start-session" data-week="${w.n}" data-day="${d.n}">${buttonLabel}</button>
+        </div>
+      `;
+
+      return `
+        <div class="pad">
+          <div class="eyebrow">${escapeHtml(dateLine)}</div>
+          <h1>Aujourd'hui</h1>
+
+          ${stepsBlock}
+
+          ${sessionBlock}
 
           <div class="progress-block">
             <div class="progress-lbl">
@@ -908,6 +1071,18 @@
         render();
       } else if (action === 'reset-progress') {
         resetProgress();
+      } else if (action === 'sync-steps') {
+        window.location.href = 'shortcuts://run-shortcut?name=PLTrackerSteps';
+      } else if (action === 'edit-steps') {
+        const current = getTodaySteps();
+        const input = prompt('Nombre de pas aujourd\'hui :', current !== null ? current : '');
+        if (input !== null && input !== '') {
+          const n = parseInt(input, 10);
+          if (!isNaN(n) && n >= 0) {
+            setTodaySteps(n);
+            render();
+          }
+        }
       }
     });
 
@@ -928,6 +1103,8 @@
     // ============================================================
 
     loadProgress();
+    loadSteps();
+    handleUrlParams();
     render();
 
     // Service worker
