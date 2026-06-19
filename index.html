@@ -4,184 +4,301 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
   <title>PL Tracker</title>
-
-  <!-- PWA iOS -->
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="PL Tracker">
-  <meta name="theme-color" content="#0E0E10">
+  <meta name="theme-color" content="#0A0A0C">
   <link rel="apple-touch-icon" href="/apple-touch-icon.png">
   <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
   <link rel="manifest" href="/manifest.json">
-
   <style>
+    :root {
+      --bg-1: #0A0A0C;
+      --bg-2: #131316;
+      --bg-3: #1C1C21;
+      --border-1: #25252B;
+      --border-2: #3A3A42;
+      --accent: #D4382F;
+      --accent-dim: #A02C26;
+      --accent-glow: rgba(212, 56, 47, 0.15);
+      --text-1: #F2EBDC;
+      --text-2: #8B8680;
+      --text-3: #5A5550;
+      --success: #6FA85B;
+      --warning: #E8A33D;
+    }
     * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
     html, body {
       margin: 0; padding: 0;
-      background: #0E0E10; color: #F2EBDC;
+      background: var(--bg-1); color: var(--text-1);
       font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', system-ui, sans-serif;
       overscroll-behavior: none;
     }
     body { padding-top: env(safe-area-inset-top); }
     input { -webkit-appearance: none; appearance: none; font-family: inherit; }
-    input:focus { outline: 1px solid #E5C547; outline-offset: -1px; }
-    button { cursor: pointer; font-family: inherit; }
+    input:focus { outline: 1px solid var(--accent); outline-offset: -1px; }
+    button { cursor: pointer; font-family: inherit; transition: transform 80ms ease-out, background 120ms; }
+    button:active { transform: scale(0.97); }
 
-    .app { min-height: 100vh; background: #0E0E10; padding-bottom: calc(72px + env(safe-area-inset-bottom)); max-width: 600px; margin: 0 auto; }
-    .pad { padding: 32px 20px 20px; }
+    .app { min-height: 100vh; background: var(--bg-1); padding-bottom: calc(72px + env(safe-area-inset-bottom)); max-width: 600px; margin: 0 auto; }
+    .pad { padding: 28px 20px 20px; }
 
-    .eyebrow { font-size: 10px; letter-spacing: 2px; color: #8B8680; font-weight: 600; margin-bottom: 8px; }
+    /* === ANIMATIONS === */
+    .anim-fade { animation: animFade 200ms ease-out; }
+    .anim-slide-up { animation: animSlideUp 300ms cubic-bezier(0.2, 0.8, 0.2, 1); }
+    .anim-slide-down { animation: animSlideDown 250ms cubic-bezier(0.2, 0.8, 0.2, 1); }
+    @keyframes animFade { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes animSlideUp {
+      from { opacity: 0; transform: translateY(40px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes animSlideDown {
+      from { opacity: 0; transform: translateY(-30px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes pulseCheck {
+      0% { transform: scale(1); }
+      40% { transform: scale(1.18); }
+      100% { transform: scale(1); }
+    }
+    .set-check.just-checked { animation: pulseCheck 280ms ease-out; }
+
+    /* === TYPO === */
+    .eyebrow { font-size: 10px; letter-spacing: 2px; color: var(--text-2); font-weight: 600; }
     h1 {
       font-size: 36px; font-weight: 800; letter-spacing: -1px;
-      margin: 0; line-height: 1; color: #F2EBDC;
+      margin: 4px 0 0 0; line-height: 1; color: var(--text-1);
       font-family: Impact, 'Helvetica Neue Condensed', 'Arial Narrow', sans-serif;
       text-transform: uppercase;
     }
-    .subtitle { font-size: 14px; color: #8B8680; margin-top: 6px; letter-spacing: 0.3px; }
+    .subtitle { font-size: 14px; color: var(--text-2); margin-top: 6px; letter-spacing: 0.3px; }
+    .section-label { font-size: 10px; letter-spacing: 2px; color: var(--text-2); font-weight: 700; }
 
-    /* Today */
-    .main-preview { padding: 16px 0; border-bottom: 1px solid #2A2A30; }
-    .main-name { font-size: 14px; color: #F2EBDC; margin-bottom: 6px; }
-    .main-stats { font-family: ui-monospace, 'SF Mono', Menlo, monospace; font-size: 22px; font-weight: 600; letter-spacing: -0.5px; }
-    .main-weight { color: #E5C547; }
-    .main-rpe { color: #8B8680; font-size: 16px; }
-
-    .cta {
-      width: 100%; padding: 18px; background: #E5C547; color: #0E0E10;
-      border: none; font-weight: 800; font-size: 14px; letter-spacing: 2px;
-      margin-top: 24px;
+    /* === COUNTDOWN === */
+    .countdown {
+      background: var(--bg-2);
+      border-left: 3px solid var(--accent);
+      padding: 18px 16px;
+      margin-top: 18px;
+      display: flex; align-items: center; justify-content: space-between;
     }
-    .cta:active { background: #c9aa3c; }
-
-    .progress-block { margin-top: 40px; }
-    .progress-lbl { display: flex; justify-content: space-between; font-size: 10px; letter-spacing: 1.5px; color: #8B8680; margin-bottom: 8px; font-weight: 600; }
-    .progress-bar { height: 3px; background: #2A2A30; overflow: hidden; }
-    .progress-fill { height: 100%; background: #E5C547; transition: width 0.3s; }
-
-    /* Programme */
-    .week-tabs { display: grid; grid-template-columns: repeat(8, 1fr); gap: 4px; margin-top: 24px; margin-bottom: 20px; }
-    .week-tab { padding: 10px 0; background: transparent; color: #8B8680; border: 1px solid #2A2A30; font-size: 11px; font-weight: 700; letter-spacing: 0.5px; }
-    .week-tab.active { background: #E5C547; color: #0E0E10; border-color: #E5C547; }
-    .block-badge { display: inline-block; padding: 4px 8px; background: #1A1A1E; color: #8B8680; font-size: 10px; letter-spacing: 1.5px; font-weight: 600; margin-bottom: 12px; }
-
-    .day-row {
-      width: 100%; background: #1A1A1E; border: none; border-left: 3px solid #2A2A30;
-      padding: 16px; margin-bottom: 8px; color: #F2EBDC; text-align: left;
-      display: flex; justify-content: space-between; align-items: center;
+    .countdown-left { display: flex; flex-direction: column; gap: 4px; }
+    .countdown-label { font-size: 10px; letter-spacing: 1.5px; color: var(--text-2); font-weight: 600; }
+    .countdown-target {
+      font-size: 14px; font-weight: 700; color: var(--text-1);
+      font-family: Impact, 'Helvetica Neue Condensed', sans-serif;
+      text-transform: uppercase; letter-spacing: 0.5px;
     }
-    .day-row.done { border-left-color: #6FA85B; }
-    .day-label { font-size: 10px; letter-spacing: 1.5px; color: #8B8680; font-weight: 600; margin-bottom: 4px; }
-    .day-name { font-size: 16px; font-weight: 600; color: #F2EBDC; }
-    .day-ex { font-size: 11px; color: #8B8680; margin-top: 4px; }
-    .day-arrow { color: #8B8680; font-size: 18px; }
-    .day-arrow.done { color: #6FA85B; }
-
-    /* Session */
-    .back-btn { background: transparent; color: #8B8680; border: none; padding: 0; font-size: 12px; letter-spacing: 1px; margin-bottom: 16px; }
-    .session-progress { display: flex; align-items: center; gap: 12px; margin-top: 12px; margin-bottom: 24px; font-size: 11px; color: #8B8680; letter-spacing: 1px; }
-    .mini-bar { flex: 1; height: 2px; background: #2A2A30; }
-    .mini-bar-fill { height: 100%; background: #E5C547; transition: width 0.3s; }
-
-    .ex-card { background: #1A1A1E; padding: 16px; margin-bottom: 16px; }
-    .ex-name { font-size: 15px; font-weight: 600; color: #F2EBDC; margin-bottom: 4px; }
-    .ex-target { font-size: 12px; color: #E5C547; font-family: ui-monospace, 'SF Mono', Menlo, monospace; }
-    .ex-note { font-size: 11px; color: #8B8680; margin-top: 4px; font-style: italic; }
-
-    .sets-grid { display: grid; grid-template-columns: 24px 1fr 1fr 1fr 40px; gap: 8px; align-items: center; margin-top: 12px; }
-    .set-head { font-size: 9px; letter-spacing: 1px; color: #8B8680; font-weight: 600; text-transform: uppercase; padding-bottom: 4px; border-bottom: 1px solid #2A2A30; }
-    .set-num { font-size: 13px; color: #8B8680; font-family: ui-monospace, 'SF Mono', Menlo, monospace; font-weight: 600; }
-    .set-input { background: #0E0E10; border: 1px solid #2A2A30; color: #F2EBDC; padding: 8px 6px; font-size: 14px; font-family: ui-monospace, 'SF Mono', Menlo, monospace; text-align: center; width: 100%; }
-    .set-check { width: 36px; height: 36px; border: 1px solid #2A2A30; background: transparent; font-size: 18px; font-weight: 700; color: #8B8680; display: flex; align-items: center; justify-content: center; padding: 0; }
-    .set-check.done { background: #6FA85B; color: #0E0E10; border-color: #6FA85B; }
-
-    /* Timer */
-    .timer {
-      position: fixed; bottom: calc(20px + env(safe-area-inset-bottom)); left: 20px; right: 20px;
-      max-width: 560px; margin: 0 auto; background: #1A1A1E; border: 1px solid #E5C547;
-      padding: 16px; display: flex; align-items: center; justify-content: space-between;
-      box-shadow: 0 8px 32px rgba(0,0,0,0.6); z-index: 20;
+    .countdown-date { font-size: 11px; color: var(--text-2); }
+    .countdown-num {
+      font-size: 44px; font-weight: 800; color: var(--accent);
+      font-family: Impact, 'Helvetica Neue Condensed', sans-serif;
+      line-height: 0.85; letter-spacing: -1.5px;
     }
-    .timer-lbl { font-size: 10px; letter-spacing: 1.5px; color: #8B8680; font-weight: 600; flex: 1; }
-    .timer-num { font-size: 32px; font-weight: 800; color: #E5C547; font-family: ui-monospace, 'SF Mono', Menlo, monospace; letter-spacing: -1px; margin: 0 16px; }
-    .timer-skip { background: transparent; color: #8B8680; border: 1px solid #2A2A30; padding: 8px 12px; font-size: 10px; letter-spacing: 1px; }
+    .countdown-num-sub { font-size: 10px; color: var(--text-2); text-align: right; letter-spacing: 1.5px; font-weight: 600; }
 
-    /* Nav */
-    .nav {
-      position: fixed; bottom: 0; left: 0; right: 0; background: #0E0E10;
-      border-top: 1px solid #2A2A30; display: flex; height: calc(64px + env(safe-area-inset-bottom));
-      padding-bottom: env(safe-area-inset-bottom); z-index: 10;
+    /* === RECOVERY STATUS === */
+    .recovery {
+      margin-top: 16px;
+      background: var(--bg-2);
+      padding: 12px 16px;
     }
-    .tab-btn { flex: 1; background: transparent; border: none; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 8px; font-weight: 600; color: #8B8680; }
-    .tab-btn.active { color: #E5C547; }
-    .tab-icon { font-size: 18px; line-height: 1; }
-    .tab-label { font-size: 10px; margin-top: 4px; letter-spacing: 0.5px; }
+    .recovery-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+    .recovery-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+    .recovery-item { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+    .recovery-lift {
+      font-size: 10px; letter-spacing: 1px; color: var(--text-2); font-weight: 700;
+    }
+    .recovery-time {
+      font-size: 18px; font-weight: 800; font-family: ui-monospace, 'SF Mono', Menlo, monospace;
+      letter-spacing: -0.5px;
+    }
+    .recovery-time.fresh { color: var(--text-3); }
+    .recovery-time.warning { color: var(--warning); }
+    .recovery-time.ready { color: var(--success); }
+    .recovery-time.never { color: var(--text-3); }
 
-    /* Today extras */
-    .steps-widget {
-      background: #1A1A1E; padding: 14px 16px; margin-top: 20px; margin-bottom: 24px;
-      display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    /* === BW + READINESS === */
+    .quick-row { display: grid; grid-template-columns: 1fr 1.4fr; gap: 10px; margin-top: 16px; }
+    .quick-card { background: var(--bg-2); padding: 12px; }
+    .quick-card .eyebrow { display: block; margin-bottom: 8px; }
+    .bw-display {
+      font-size: 24px; font-weight: 800; color: var(--text-1);
+      font-family: ui-monospace, 'SF Mono', Menlo, monospace;
+      letter-spacing: -0.5px; line-height: 1; cursor: pointer;
     }
-    .steps-info { flex: 1; min-width: 0; }
-    .steps-label { font-size: 10px; letter-spacing: 1.5px; color: #8B8680; font-weight: 600; margin-bottom: 4px; }
-    .steps-num {
-      font-size: 28px; font-weight: 800; color: #E5C547;
-      font-family: ui-monospace, 'SF Mono', Menlo, monospace; letter-spacing: -0.5px; line-height: 1;
+    .bw-display.empty { color: var(--text-3); }
+    .bw-unit { font-size: 12px; color: var(--text-2); margin-left: 3px; font-family: -apple-system, sans-serif; font-weight: 600; }
+    .readiness-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+    .readiness-btn {
+      background: transparent; border: 1px solid var(--border-1);
+      padding: 6px 0; font-size: 18px; line-height: 1;
+      transition: all 120ms;
     }
-    .steps-actions { display: flex; flex-direction: column; gap: 6px; }
-    .steps-btn-sync, .steps-btn-edit {
-      background: transparent; color: #8B8680; border: 1px solid #2A2A30;
-      padding: 7px 10px; font-size: 10px; letter-spacing: 1px; font-weight: 600;
-      white-space: nowrap; font-family: inherit;
-    }
-    .steps-btn-sync { color: #E5C547; border-color: #E5C547; }
-    .steps-btn-sync:active { background: rgba(229,197,71,0.1); }
-    .steps-btn-edit:active { background: #2A2A30; }
+    .readiness-btn.selected { background: var(--accent-glow); border-color: var(--accent); }
+    .readiness-btn:active { background: var(--bg-3); }
 
+    /* === SESSION SECTION (today) === */
     .session-section { margin-top: 24px; margin-bottom: 24px; }
-    .section-label { font-size: 10px; letter-spacing: 2px; color: #8B8680; font-weight: 700; margin-bottom: 8px; }
+    .session-section-label { margin-bottom: 8px; }
     .session-day-name {
-      font-size: 22px; font-weight: 800; color: #F2EBDC;
+      font-size: 22px; font-weight: 800; color: var(--text-1);
       font-family: Impact, 'Helvetica Neue Condensed', sans-serif;
       text-transform: uppercase; letter-spacing: -0.5px; line-height: 1.1;
     }
-    .session-week { font-size: 11px; color: #8B8680; letter-spacing: 1px; margin-top: 6px; margin-bottom: 16px; font-weight: 600; }
+    .session-week-info { font-size: 11px; color: var(--text-2); letter-spacing: 1px; margin-top: 6px; margin-bottom: 16px; font-weight: 600; }
     .ex-list { margin-bottom: 20px; }
     .ex-list-row {
       display: flex; justify-content: space-between; align-items: baseline;
-      padding: 10px 0; border-bottom: 1px solid #2A2A30; gap: 12px;
+      padding: 10px 0; border-bottom: 1px solid var(--border-1); gap: 12px;
     }
     .ex-list-row:last-child { border-bottom: none; }
-    .ex-list-name { font-size: 13px; color: #F2EBDC; flex: 1; }
-    .ex-mark { color: #2A2A30; margin-right: 6px; font-size: 9px; }
-    .ex-mark.main { color: #E5C547; }
+    .ex-list-name { font-size: 13px; color: var(--text-1); flex: 1; }
+    .ex-mark { color: var(--border-2); margin-right: 6px; font-size: 9px; }
+    .ex-mark.main { color: var(--accent); }
     .ex-list-stats {
-      font-size: 12px; color: #E5C547; font-family: ui-monospace, 'SF Mono', Menlo, monospace;
+      font-size: 12px; color: var(--accent); font-family: ui-monospace, 'SF Mono', Menlo, monospace;
       white-space: nowrap; font-weight: 600;
     }
 
-    /* Stats */
-    .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 24px; }
-    .stat-box { background: #1A1A1E; padding: 16px; }
-    .stat-num { font-size: 32px; font-weight: 800; color: #E5C547; font-family: Impact, 'Helvetica Neue Condensed', sans-serif; line-height: 1; }
-    .stat-lbl { font-size: 10px; letter-spacing: 1.5px; color: #8B8680; margin-top: 6px; font-weight: 600; }
-    .section-head { font-size: 10px; letter-spacing: 2px; color: #8B8680; font-weight: 700; margin-top: 32px; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid #2A2A30; }
-    .pr-row { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #2A2A30; }
-    .pr-name { font-size: 14px; color: #F2EBDC; }
-    .pr-val { font-size: 14px; color: #E5C547; font-family: ui-monospace, 'SF Mono', Menlo, monospace; font-weight: 600; }
-    .empty { margin-top: 60px; text-align: center; color: #8B8680; font-size: 13px; font-style: italic; }
+    .cta {
+      width: 100%; padding: 18px; background: var(--accent); color: var(--text-1);
+      border: none; font-weight: 800; font-size: 14px; letter-spacing: 2px;
+    }
+    .cta:active { background: var(--accent-dim); }
 
-    .big-stat { margin-top: 32px; text-align: center; }
-    .big-num { font-size: 72px; font-weight: 800; color: #E5C547; font-family: Impact, 'Helvetica Neue Condensed', sans-serif; line-height: 1; }
-    .big-lbl { font-size: 12px; letter-spacing: 2px; color: #8B8680; margin-top: 8px; }
+    /* === LAST SESSION === */
+    .last-session {
+      background: var(--bg-2); padding: 14px 16px; margin-top: 24px;
+    }
+    .last-session-info { font-size: 14px; color: var(--text-1); font-weight: 600; margin-top: 6px; }
+    .last-session-detail {
+      font-size: 12px; color: var(--accent); margin-top: 4px;
+      font-family: ui-monospace, 'SF Mono', Menlo, monospace; font-weight: 600;
+    }
+    .last-session-empty { color: var(--text-3); font-size: 12px; font-style: italic; margin-top: 4px; }
 
-    .reset-btn { background: transparent; color: #8B8680; border: 1px solid #2A2A30; padding: 12px 16px; font-size: 11px; letter-spacing: 1.5px; margin-top: 32px; width: 100%; font-weight: 600; }
-    .reset-btn:active { background: #1A1A1E; }
+    /* === PROGRESS BAR === */
+    .progress-block { margin-top: 32px; }
+    .progress-lbl { display: flex; justify-content: space-between; font-size: 10px; letter-spacing: 1.5px; color: var(--text-2); margin-bottom: 8px; font-weight: 600; }
+    .progress-bar { height: 3px; background: var(--border-1); overflow: hidden; }
+    .progress-fill { height: 100%; background: var(--accent); transition: width 0.3s; }
 
-    /* Chart */
-    .chart-wrap { margin-top: 12px; background: #1A1A1E; padding: 16px 12px 12px; }
-    .bar-chart { width: 100%; height: 180px; }
-    .bar-axis-lbl { font-size: 9px; fill: #8B8680; font-family: ui-monospace, monospace; }
-    .bar-fill { fill: #E5C547; }
+    /* === PROGRAMME VIEW === */
+    .week-tabs { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-top: 24px; margin-bottom: 20px; }
+    .week-tab {
+      padding: 10px 0; background: transparent; color: var(--text-2); border: 1px solid var(--border-1);
+      font-size: 11px; font-weight: 700; letter-spacing: 0.5px;
+    }
+    .week-tab.active { background: var(--accent); color: var(--text-1); border-color: var(--accent); }
+    .block-badge { display: inline-block; padding: 4px 8px; background: var(--bg-2); color: var(--text-2); font-size: 10px; letter-spacing: 1.5px; font-weight: 600; margin-bottom: 12px; }
+
+    .day-row {
+      width: 100%; background: var(--bg-2); border: none; border-left: 3px solid var(--border-1);
+      padding: 16px; margin-bottom: 8px; color: var(--text-1); text-align: left;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .day-row.done { border-left-color: var(--success); }
+    .day-row.test { border-left-color: var(--accent); }
+    .day-label { font-size: 10px; letter-spacing: 1.5px; color: var(--text-2); font-weight: 600; margin-bottom: 4px; }
+    .day-name { font-size: 16px; font-weight: 600; color: var(--text-1); }
+    .day-date { font-size: 11px; color: var(--text-2); margin-top: 4px; font-family: ui-monospace, monospace; }
+    .day-arrow { color: var(--text-2); font-size: 18px; }
+    .day-arrow.done { color: var(--success); }
+
+    /* === SESSION VIEW === */
+    .back-btn { background: transparent; color: var(--text-2); border: none; padding: 0; font-size: 12px; letter-spacing: 1px; margin-bottom: 16px; }
+    .session-progress { display: flex; align-items: center; gap: 12px; margin-top: 12px; margin-bottom: 24px; font-size: 11px; color: var(--text-2); letter-spacing: 1px; }
+    .mini-bar { flex: 1; height: 2px; background: var(--border-1); }
+    .mini-bar-fill { height: 100%; background: var(--accent); transition: width 0.3s; }
+
+    .ex-card { background: var(--bg-2); padding: 16px; margin-bottom: 16px; }
+    .ex-name { font-size: 15px; font-weight: 600; color: var(--text-1); margin-bottom: 4px; }
+    .ex-target { font-size: 12px; color: var(--accent); font-family: ui-monospace, 'SF Mono', Menlo, monospace; }
+    .ex-note { font-size: 11px; color: var(--text-2); margin-top: 4px; font-style: italic; }
+    .ex-test-banner {
+      background: var(--accent-glow); border: 1px solid var(--accent);
+      padding: 8px 10px; margin-top: 8px; font-size: 11px; color: var(--text-1);
+      letter-spacing: 0.5px; font-weight: 600;
+    }
+
+    .sets-grid { display: grid; grid-template-columns: 24px 1fr 1fr 1fr 40px; gap: 8px; align-items: center; margin-top: 12px; }
+    .sets-grid.with-label { grid-template-columns: 24px 80px 1fr 1fr 40px; }
+    .set-head { font-size: 9px; letter-spacing: 1px; color: var(--text-2); font-weight: 600; text-transform: uppercase; padding-bottom: 4px; border-bottom: 1px solid var(--border-1); }
+    .set-num { font-size: 13px; color: var(--text-2); font-family: ui-monospace, 'SF Mono', Menlo, monospace; font-weight: 600; }
+    .set-input { background: var(--bg-1); border: 1px solid var(--border-1); color: var(--text-1); padding: 8px 6px; font-size: 14px; font-family: ui-monospace, 'SF Mono', Menlo, monospace; text-align: center; width: 100%; }
+    .set-label {
+      font-size: 10px; color: var(--text-2); letter-spacing: 0.5px; line-height: 1.2;
+      padding-right: 4px;
+    }
+    .set-label.attempt { color: var(--accent); font-weight: 700; }
+    .set-check {
+      width: 36px; height: 36px; border: 1px solid var(--border-1); background: transparent;
+      font-size: 18px; font-weight: 700; color: var(--text-2);
+      display: flex; align-items: center; justify-content: center; padding: 0;
+    }
+    .set-check.done { background: var(--success); color: var(--bg-1); border-color: var(--success); }
+
+    /* === TIMER === */
+    .timer {
+      position: fixed; bottom: calc(20px + env(safe-area-inset-bottom)); left: 20px; right: 20px;
+      max-width: 560px; margin: 0 auto; background: var(--bg-2); border: 1px solid var(--accent);
+      padding: 16px; display: flex; align-items: center; justify-content: space-between;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.6); z-index: 20;
+    }
+    .timer-lbl { font-size: 10px; letter-spacing: 1.5px; color: var(--text-2); font-weight: 600; flex: 1; }
+    .timer-num { font-size: 32px; font-weight: 800; color: var(--accent); font-family: ui-monospace, 'SF Mono', Menlo, monospace; letter-spacing: -1px; margin: 0 16px; }
+    .timer-skip { background: transparent; color: var(--text-2); border: 1px solid var(--border-1); padding: 8px 12px; font-size: 10px; letter-spacing: 1px; }
+
+    /* === NAV === */
+    .nav {
+      position: fixed; bottom: 0; left: 0; right: 0; background: var(--bg-1);
+      border-top: 1px solid var(--border-1); display: flex; height: calc(64px + env(safe-area-inset-bottom));
+      padding-bottom: env(safe-area-inset-bottom); z-index: 10;
+    }
+    .tab-btn { flex: 1; background: transparent; border: none; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 8px; font-weight: 600; color: var(--text-2); }
+    .tab-btn.active { color: var(--accent); }
+    .tab-icon { font-size: 18px; line-height: 1; }
+    .tab-label { font-size: 10px; margin-top: 4px; letter-spacing: 0.5px; }
+
+    /* === STATS === */
+    .stat-section { margin-bottom: 32px; }
+    .stat-section-head {
+      font-size: 10px; letter-spacing: 2px; color: var(--text-2); font-weight: 700;
+      margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid var(--border-1);
+    }
+    .stats-summary { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-top: 18px; }
+    .stat-box { background: var(--bg-2); padding: 14px 12px; }
+    .stat-num { font-size: 28px; font-weight: 800; color: var(--accent); font-family: Impact, 'Helvetica Neue Condensed', sans-serif; line-height: 1; }
+    .stat-lbl { font-size: 10px; letter-spacing: 1.5px; color: var(--text-2); margin-top: 6px; font-weight: 600; }
+    .e1rm-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .e1rm-card { background: var(--bg-2); padding: 12px; }
+    .e1rm-name { font-size: 11px; letter-spacing: 1.5px; color: var(--text-2); font-weight: 600; }
+    .e1rm-val {
+      font-size: 22px; font-weight: 800; color: var(--accent);
+      font-family: ui-monospace, monospace; letter-spacing: -0.5px;
+      margin-top: 4px; line-height: 1;
+    }
+    .e1rm-trend { font-size: 10px; color: var(--text-2); margin-top: 4px; }
+    .e1rm-trend.up { color: var(--success); }
+    .chart-wrap { background: var(--bg-2); padding: 16px 12px 12px; }
+    .chart-svg { width: 100%; height: 180px; }
+    .axis-lbl { font-size: 9px; fill: var(--text-2); font-family: ui-monospace, monospace; }
+    .bar-fill { fill: var(--accent); }
+    .line-stroke { stroke: var(--accent); stroke-width: 2; fill: none; }
+    .line-point { fill: var(--accent); }
+    .grid-line { stroke: var(--border-1); stroke-dasharray: 2 4; }
+    .compliance-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border-1); align-items: center; }
+    .compliance-week { font-size: 12px; color: var(--text-1); font-weight: 600; }
+    .compliance-bar-wrap { flex: 1; height: 4px; background: var(--border-1); margin: 0 12px; }
+    .compliance-bar-fill { height: 100%; background: var(--success); }
+    .compliance-val { font-size: 12px; color: var(--text-2); font-family: ui-monospace, monospace; min-width: 50px; text-align: right; }
+    .empty { text-align: center; color: var(--text-3); font-size: 12px; font-style: italic; padding: 40px 0; }
+    .reset-btn {
+      background: transparent; color: var(--text-2); border: 1px solid var(--border-1);
+      padding: 12px 16px; font-size: 11px; letter-spacing: 1.5px; margin-top: 32px;
+      width: 100%; font-weight: 600;
+    }
   </style>
 </head>
 <body>
@@ -189,479 +306,513 @@
 
   <script>
     // ============================================================
-    // DONNÉES DU PROGRAMME
+    // PROGRAMME 4 SEMAINES — PEAK BLOCK
     // ============================================================
     const PROGRAM = [
-      { n: 1, block: 'Accumulation', days: [
-        { n: 1, label: 'Lundi', name: 'Squat + OHP', ex: [
-          { name: 'Squat compétition', sets: 4, reps: 4, weight: 175, rpe: 7, rest: 240, main: true, key: 'squat' },
-          { name: 'Pause squat 2s', sets: 3, reps: 5, weight: 150, rpe: 7, rest: 180, key: 'pause-squat' },
-          { name: 'Overhead press', sets: 3, reps: 5, weight: 75, rpe: 7, rest: 180, key: 'ohp', main: true },
-          { name: 'Bulgarian split squat', sets: 3, reps: '8/jambe', rest: 120, key: 'bulgarian' },
+      { n: 1, block: 'Transition', days: [
+        { n: 1, date: '2026-06-22', label: 'Lundi', name: 'Squat', ex: [
+          { name: 'Squat compétition', sets: 4, reps: 3, weight: 180, rpe: 7, rest: 240, main: true, key: 'squat' },
+          { name: 'Leg press', sets: 3, reps: 10, note: 'Dernière série RPE 8', rest: 120, key: 'leg-press' },
           { name: 'Leg curl couché', sets: 3, reps: 10, rest: 90, key: 'leg-curl' },
-          { name: 'Gainage', sets: 3, reps: '30s', rest: 60, key: 'gainage' }
         ]},
-        { n: 2, label: 'Mercredi', name: 'Bench + Dos', ex: [
-          { name: 'Board press 2 planches', sets: 4, reps: 5, weight: 102.5, rpe: 7, rest: 240, main: true, key: 'board-2' },
+        { n: 2, date: '2026-06-24', label: 'Mercredi', name: 'Bench + Dos', ex: [
+          { name: 'Bench compétition', sets: 4, reps: 4, weight: 110, rpe: 7.5, rest: 240, main: true, key: 'bench' },
           { name: 'Flat DB bench', sets: 3, reps: 8, note: '~32,5-35 kg/main, semi-pronation', rest: 150, key: 'db-bench' },
           { name: 'Tirage horizontal poulie', sets: 4, reps: 10, rest: 90, key: 'row-cable' },
-          { name: 'Face pull', sets: 3, reps: 15, rest: 60, key: 'face-pull' },
+          { name: 'Tirage vertical prise serrée', sets: 4, reps: 10, rest: 90, key: 'pulldown' },
+          { name: 'Oiseau (rear delt fly)', sets: 3, reps: 12, rest: 60, key: 'rear-delt' },
           { name: 'Triceps haute poulie', sets: 3, reps: 12, rest: 60, key: 'triceps' },
-          { name: 'Rotation externe élastique', sets: 3, reps: '15/bras', rest: 45, key: 'er' }
         ]},
-        { n: 3, label: 'Vendredi', name: 'Deadlift', ex: [
-          { name: 'Soulevé de terre', sets: 3, reps: 3, weight: 245, rpe: 7, rest: 300, main: true, key: 'dl' },
-          { name: 'Romanian deadlift', sets: 3, reps: 8, weight: 150, rest: 180, key: 'rdl' },
+        { n: 3, date: '2026-06-26', label: 'Vendredi', name: 'Deadlift + Tempo squat', ex: [
+          { name: 'Soulevé de terre', sets: 3, reps: 3, weight: 252.5, rpe: 7.5, rest: 300, main: true, key: 'dl' },
+          { name: 'Romanian deadlift', sets: 3, reps: 8, weight: 140, rest: 180, key: 'rdl' },
+          { name: 'Squat tempo (3s descente)', sets: 3, reps: 4, weight: 160, rpe: 7, rest: 180, key: 'tempo-squat' },
           { name: '45° back extension lestée', sets: 3, reps: 10, note: '10-15 kg', rest: 90, key: 'back-ext' },
           { name: 'Tirage barre buste penché', sets: 3, reps: 8, weight: 90, rest: 120, key: 'row-bb' },
-          { name: 'Élévations latérales', sets: 3, reps: 15, note: '6-8 kg/main', rest: 60, key: 'lat-raise' }
         ]},
-        { n: 4, label: 'Samedi', name: 'Spoto + High bar', ex: [
-          { name: 'Spoto press', sets: 4, reps: 5, weight: 92.5, rpe: 7, rest: 180, main: true, key: 'spoto' },
-          { name: 'High bar squat', sets: 3, reps: 5, weight: 157.5, rpe: 7, rest: 180, key: 'high-bar' },
+        { n: 4, date: '2026-06-27', label: 'Samedi', name: 'Bench pause + OHP', ex: [
+          { name: 'Bench compétition pause 1s', sets: 4, reps: 5, weight: 95, rpe: 7, rest: 240, main: true, key: 'bench-pause' },
+          { name: 'Overhead press', sets: 3, reps: 5, weight: 75, rpe: 7, rest: 180, main: true, key: 'ohp' },
           { name: 'Tractions lestées', sets: 4, reps: '6-8', note: '+10 kg', rest: 120, key: 'pullups' },
           { name: 'Skullcrushers', sets: 3, reps: 10, weight: 45, rest: 90, key: 'skull' },
-          { name: 'Pull-apart élastique', sets: 3, reps: 20, rest: 45, key: 'pull-apart' }
-        ]}
+          { name: 'Pull-apart élastique', sets: 3, reps: 20, rest: 45, key: 'pull-apart' },
+        ]},
       ]},
-      { n: 2, block: 'Accumulation', days: [
-        { n: 1, label: 'Lundi', name: 'Squat + OHP', ex: [
-          { name: 'Squat compétition', sets: 4, reps: 4, weight: 180, rpe: 7.5, rest: 240, main: true, key: 'squat' },
-          { name: 'Pause squat 2s', sets: 3, reps: 5, weight: 155, rpe: 7.5, rest: 180, key: 'pause-squat' },
-          { name: 'Overhead press', sets: 3, reps: 5, weight: 77.5, rpe: 7.5, rest: 180, key: 'ohp', main: true },
-          { name: 'Bulgarian split squat', sets: 3, reps: '8/jambe', rest: 120, key: 'bulgarian' },
-          { name: 'Leg curl couché', sets: 3, reps: 12, rest: 90, key: 'leg-curl' },
-          { name: 'Gainage', sets: 3, reps: '40s', rest: 60, key: 'gainage' }
+      { n: 2, block: 'Intensification', days: [
+        { n: 1, date: '2026-06-29', label: 'Lundi', name: 'Squat', ex: [
+          { name: 'Squat compétition', sets: 4, reps: 3, weight: 187.5, rpe: 8, rest: 240, main: true, key: 'squat' },
+          { name: 'Leg press', sets: 3, reps: 8, note: 'Dernière série RPE 8', rest: 120, key: 'leg-press' },
+          { name: 'Leg curl couché', sets: 3, reps: 10, rest: 90, key: 'leg-curl' },
         ]},
-        { n: 2, label: 'Mercredi', name: 'Bench + Dos', ex: [
-          { name: 'Board press 2 planches', sets: 5, reps: 4, weight: 110, rpe: 7.5, rest: 240, main: true, key: 'board-2' },
-          { name: 'Flat DB bench', sets: 3, reps: 8, note: '+2,5 kg/main vs S1', rest: 150, key: 'db-bench' },
-          { name: 'Tirage horizontal poulie', sets: 4, reps: 12, rest: 90, key: 'row-cable' },
-          { name: 'Face pull', sets: 3, reps: 15, rest: 60, key: 'face-pull' },
-          { name: 'Triceps haute poulie', sets: 4, reps: 10, rest: 60, key: 'triceps' },
-          { name: 'Rotation externe élastique', sets: 3, reps: '15/bras', rest: 45, key: 'er' }
-        ]},
-        { n: 3, label: 'Vendredi', name: 'Deadlift', ex: [
-          { name: 'Soulevé de terre', sets: 3, reps: 3, weight: 250, rpe: 7.5, rest: 300, main: true, key: 'dl' },
-          { name: 'Romanian deadlift', sets: 3, reps: 8, weight: 160, rest: 180, key: 'rdl' },
-          { name: '45° back extension lestée', sets: 3, reps: 12, note: '12,5-17,5 kg', rest: 90, key: 'back-ext' },
-          { name: 'Tirage barre buste penché', sets: 4, reps: 8, weight: 92.5, rest: 120, key: 'row-bb' },
-          { name: 'Élévations latérales', sets: 3, reps: 15, rest: 60, key: 'lat-raise' }
-        ]},
-        { n: 4, label: 'Samedi', name: 'Spoto + High bar', ex: [
-          { name: 'Spoto press', sets: 4, reps: 5, weight: 95, rpe: 7.5, rest: 180, main: true, key: 'spoto' },
-          { name: 'High bar squat', sets: 3, reps: 5, weight: 160, rpe: 7.5, rest: 180, key: 'high-bar' },
-          { name: 'Tractions lestées', sets: 4, reps: '6-8', note: '+12,5 kg', rest: 120, key: 'pullups' },
-          { name: 'Skullcrushers', sets: 3, reps: 10, weight: 47.5, rest: 90, key: 'skull' },
-          { name: 'Pull-apart élastique', sets: 3, reps: 25, rest: 45, key: 'pull-apart' }
-        ]}
-      ]},
-      { n: 3, block: 'Accumulation', days: [
-        { n: 1, label: 'Lundi', name: 'Squat + OHP', ex: [
-          { name: 'Squat compétition', sets: 5, reps: 3, weight: 187.5, rpe: 8, rest: 240, main: true, key: 'squat' },
-          { name: 'Pause squat 2s', sets: 3, reps: 4, weight: 165, rpe: 8, rest: 180, key: 'pause-squat' },
-          { name: 'Overhead press', sets: 4, reps: 4, weight: 82.5, rpe: 8, rest: 180, key: 'ohp', main: true },
-          { name: 'Bulgarian split squat', sets: 3, reps: '10/jambe', rest: 120, key: 'bulgarian' },
-          { name: 'Leg curl couché', sets: 4, reps: 10, rest: 90, key: 'leg-curl' },
-          { name: 'Gainage', sets: 3, reps: '45s', rest: 60, key: 'gainage' }
-        ]},
-        { n: 2, label: 'Mercredi', name: 'Bench + Dos', ex: [
-          { name: 'Board press 2 planches', sets: 5, reps: 3, weight: 115, rpe: 8, rest: 240, main: true, key: 'board-2' },
-          { name: 'Flat DB bench', sets: 4, reps: 6, note: '+2,5 kg/main vs S2', rest: 150, key: 'db-bench' },
-          { name: 'Tirage horizontal poulie', sets: 5, reps: 10, rest: 90, key: 'row-cable' },
-          { name: 'Face pull', sets: 4, reps: 15, rest: 60, key: 'face-pull' },
-          { name: 'Triceps haute poulie', sets: 4, reps: 10, rest: 60, key: 'triceps' },
-          { name: 'Rotation externe élastique', sets: 3, reps: '20/bras', rest: 45, key: 'er' }
-        ]},
-        { n: 3, label: 'Vendredi', name: 'Deadlift', ex: [
-          { name: 'Soulevé de terre', sets: 3, reps: 2, weight: 265, rpe: 8, rest: 300, main: true, key: 'dl' },
-          { name: 'Romanian deadlift', sets: 3, reps: 6, weight: 170, rest: 180, key: 'rdl' },
-          { name: '45° back extension lestée', sets: 4, reps: 10, note: '15-20 kg', rest: 90, key: 'back-ext' },
-          { name: 'Tirage barre buste penché', sets: 4, reps: 8, weight: 95, rest: 120, key: 'row-bb' },
-          { name: 'Élévations latérales', sets: 3, reps: 15, rest: 60, key: 'lat-raise' }
-        ]},
-        { n: 4, label: 'Samedi', name: 'Spoto + High bar', ex: [
-          { name: 'Spoto press', sets: 5, reps: 4, weight: 100, rpe: 8, rest: 180, main: true, key: 'spoto' },
-          { name: 'High bar squat', sets: 3, reps: 4, weight: 170, rpe: 8, rest: 180, key: 'high-bar' },
-          { name: 'Tractions lestées', sets: 5, reps: 6, note: '+15 kg', rest: 120, key: 'pullups' },
-          { name: 'Skullcrushers', sets: 4, reps: 8, weight: 50, rest: 90, key: 'skull' },
-          { name: 'Pull-apart élastique', sets: 3, reps: 25, rest: 45, key: 'pull-apart' }
-        ]}
-      ]},
-      { n: 4, block: 'Décharge', days: [
-        { n: 1, label: 'Lundi', name: 'Squat léger', ex: [
-          { name: 'Squat compétition', sets: 3, reps: 3, weight: 145, rpe: 6, rest: 180, main: true, key: 'squat' },
-          { name: 'Bulgarian split squat', sets: 2, reps: '8/jambe', note: 'léger', rest: 90, key: 'bulgarian' },
-          { name: 'Gainage', sets: 2, reps: '30s', rest: 45, key: 'gainage' }
-        ]},
-        { n: 2, label: 'Mercredi', name: 'Bench léger', ex: [
-          { name: 'Board press 2 planches', sets: 3, reps: 5, weight: 85, rpe: 6, rest: 180, main: true, key: 'board-2' },
-          { name: 'Face pull', sets: 3, reps: 15, rest: 60, key: 'face-pull' },
-          { name: 'Rotation externe élastique', sets: 3, reps: '15/bras', rest: 45, key: 'er' }
-        ]},
-        { n: 3, label: 'Vendredi', name: 'DL léger', ex: [
-          { name: 'Soulevé de terre', sets: 2, reps: 3, weight: 195, rpe: 6, rest: 240, main: true, key: 'dl' },
-          { name: 'Romanian deadlift léger', sets: 2, reps: 8, weight: 130, rest: 120, key: 'rdl' },
-          { name: '45° back extension', sets: 2, reps: 10, note: 'léger', rest: 60, key: 'back-ext' }
-        ]},
-        { n: 4, label: 'Samedi', name: 'Repos / Mobilité', ex: [
-          { name: 'Mobilité épaule 15 min', sets: 1, reps: '15 min', rest: 0, note: 'pull-apart, rotations, étirements', key: 'mobility' }
-        ]}
-      ]},
-      { n: 5, block: 'Intensification', days: [
-        { n: 1, label: 'Lundi', name: 'Squat + OHP', ex: [
-          { name: 'Squat compétition', sets: 4, reps: 3, weight: 192.5, rpe: 8, rest: 300, main: true, key: 'squat' },
-          { name: 'Pause squat 2s', sets: 3, reps: 3, weight: 170, rpe: 7.5, rest: 240, key: 'pause-squat' },
-          { name: 'Overhead press', sets: 4, reps: 4, weight: 82.5, rpe: 7.5, rest: 180, key: 'ohp', main: true },
-          { name: 'Bulgarian split squat', sets: 3, reps: '6/jambe', rest: 120, key: 'bulgarian' },
-          { name: 'Leg curl couché', sets: 3, reps: 8, rest: 90, key: 'leg-curl' },
-          { name: 'Gainage', sets: 3, reps: '45s', rest: 60, key: 'gainage' }
-        ]},
-        { n: 2, label: 'Mercredi', name: 'Bench + Dos', ex: [
-          { name: 'Board press 1 planche (pause 1s)', sets: 4, reps: 4, weight: 105, rpe: 7.5, rest: 240, main: true, key: 'board-1' },
-          { name: 'Flat DB bench', sets: 3, reps: 8, note: '+2,5 kg vs S3', rest: 150, key: 'db-bench' },
+        { n: 2, date: '2026-07-01', label: 'Mercredi', name: 'Bench + Dos', ex: [
+          { name: 'Bench compétition', sets: 4, reps: 3, weight: 117.5, rpe: 8, rest: 240, main: true, key: 'bench' },
+          { name: 'Flat DB bench', sets: 3, reps: 6, note: '+2,5 kg/main', rest: 150, key: 'db-bench' },
           { name: 'Tirage horizontal poulie', sets: 4, reps: 8, rest: 90, key: 'row-cable' },
-          { name: 'Face pull', sets: 3, reps: 15, rest: 60, key: 'face-pull' },
+          { name: 'Tirage vertical prise serrée', sets: 4, reps: 8, rest: 90, key: 'pulldown' },
+          { name: 'Oiseau', sets: 3, reps: 12, rest: 60, key: 'rear-delt' },
           { name: 'Triceps poulie', sets: 3, reps: 10, rest: 60, key: 'triceps' },
-          { name: 'Rotation externe élastique', sets: 3, reps: '15/bras', rest: 45, key: 'er' }
         ]},
-        { n: 3, label: 'Vendredi', name: 'Deadlift', ex: [
+        { n: 3, date: '2026-07-03', label: 'Vendredi', name: 'Deadlift + Tempo squat', ex: [
           { name: 'Soulevé de terre', sets: 3, reps: 2, weight: 270, rpe: 8, rest: 300, main: true, key: 'dl' },
-          { name: 'Romanian deadlift', sets: 3, reps: 6, weight: 185, rest: 180, key: 'rdl' },
-          { name: '45° back extension lestée', sets: 3, reps: 10, note: '15-20 kg', rest: 90, key: 'back-ext' },
-          { name: 'Tirage barre buste penché', sets: 3, reps: 8, weight: 95, rest: 120, key: 'row-bb' }
+          { name: 'Romanian deadlift', sets: 3, reps: 6, weight: 160, rest: 180, key: 'rdl' },
+          { name: 'Squat tempo', sets: 3, reps: 3, weight: 170, rpe: 8, rest: 180, key: 'tempo-squat' },
+          { name: '45° back extension lestée', sets: 3, reps: 8, note: '15-20 kg', rest: 90, key: 'back-ext' },
+          { name: 'Tirage barre buste penché', sets: 3, reps: 8, weight: 97.5, rest: 120, key: 'row-bb' },
         ]},
-        { n: 4, label: 'Samedi', name: 'Bench ROM + High bar', ex: [
-          { name: 'Bench prise comp. ROM complet (pause 1s)', sets: 4, reps: 3, weight: 100, rpe: 7, rest: 240, main: true, key: 'bench-comp' },
-          { name: 'High bar squat', sets: 3, reps: 4, weight: 170, rpe: 7.5, rest: 180, key: 'high-bar' },
+        { n: 4, date: '2026-07-04', label: 'Samedi', name: 'Bench pause + OHP', ex: [
+          { name: 'Bench compétition pause 1s', sets: 4, reps: 4, weight: 102.5, rpe: 8, rest: 240, main: true, key: 'bench-pause' },
+          { name: 'Overhead press', sets: 4, reps: 4, weight: 82.5, rpe: 8, rest: 180, main: true, key: 'ohp' },
           { name: 'Tractions lestées', sets: 4, reps: '5-6', note: '+15 kg', rest: 120, key: 'pullups' },
           { name: 'Skullcrushers', sets: 3, reps: 8, weight: 50, rest: 90, key: 'skull' },
-          { name: 'Pull-apart élastique', sets: 3, reps: 25, rest: 45, key: 'pull-apart' }
-        ]}
+          { name: 'Pull-apart élastique', sets: 3, reps: 25, rest: 45, key: 'pull-apart' },
+        ]},
       ]},
-      { n: 6, block: 'Intensification', days: [
-        { n: 1, label: 'Lundi', name: 'Squat + OHP', ex: [
-          { name: 'Squat compétition', sets: 4, reps: 2, weight: 202.5, rpe: 8.5, rest: 300, main: true, key: 'squat' },
-          { name: 'Pause squat 2s', sets: 3, reps: 2, weight: 180, rpe: 8, rest: 240, key: 'pause-squat' },
-          { name: 'Overhead press', sets: 4, reps: 3, weight: 85, rpe: 8, rest: 180, key: 'ohp', main: true },
-          { name: 'Bulgarian split squat', sets: 3, reps: '6/jambe', rest: 120, key: 'bulgarian' },
-          { name: 'Leg curl couché', sets: 3, reps: 8, rest: 90, key: 'leg-curl' },
-          { name: 'Gainage', sets: 3, reps: '45s', rest: 60, key: 'gainage' }
+      { n: 3, block: 'Peak heavy', days: [
+        { n: 1, date: '2026-07-06', label: 'Lundi', name: 'Squat heavy', ex: [
+          { name: 'Squat compétition', sets: 3, reps: 2, weight: 200, rpe: 8.5, rest: 300, main: true, key: 'squat' },
+          { name: 'Leg press', sets: 2, reps: 6, note: 'RPE 7 max — finition légère', rest: 120, key: 'leg-press' },
+          { name: 'Leg curl couché', sets: 2, reps: 8, rest: 90, key: 'leg-curl' },
         ]},
-        { n: 2, label: 'Mercredi', name: 'Bench + Dos', ex: [
-          { name: 'Board press 1 planche', sets: 4, reps: 3, weight: 110, rpe: 8, rest: 240, main: true, key: 'board-1' },
-          { name: 'Flat DB bench', sets: 3, reps: 6, note: '+2,5 kg/main', rest: 150, key: 'db-bench' },
-          { name: 'Tirage horizontal poulie', sets: 4, reps: 8, rest: 90, key: 'row-cable' },
-          { name: 'Face pull', sets: 3, reps: 15, rest: 60, key: 'face-pull' },
-          { name: 'Triceps poulie', sets: 3, reps: 10, rest: 60, key: 'triceps' },
-          { name: 'Rotation externe', sets: 3, reps: '15/bras', rest: 45, key: 'er' }
+        { n: 2, date: '2026-07-08', label: 'Mercredi', name: 'Bench primer', ex: [
+          { name: 'Bench compétition', sets: 4, reps: 2, weight: 122.5, rpe: 8, rest: 240, main: true, key: 'bench' },
+          { name: 'Tirage horizontal poulie', sets: 3, reps: 8, rest: 90, key: 'row-cable' },
+          { name: 'Oiseau', sets: 2, reps: 12, rest: 60, key: 'rear-delt' },
+          { name: 'Pull-apart élastique', sets: 2, reps: 20, rest: 45, key: 'pull-apart' },
         ]},
-        { n: 3, label: 'Vendredi', name: 'Deadlift', ex: [
-          { name: 'Soulevé de terre', sets: 3, reps: 2, weight: 275, rpe: 8.5, rest: 300, main: true, key: 'dl' },
-          { name: 'Romanian deadlift', sets: 3, reps: 5, weight: 195, rest: 180, key: 'rdl' },
-          { name: '45° back extension lestée', sets: 3, reps: 8, note: '17,5-22,5 kg', rest: 90, key: 'back-ext' },
-          { name: 'Tirage barre buste penché', sets: 3, reps: 8, weight: 97.5, rest: 120, key: 'row-bb' }
+        { n: 3, date: '2026-07-10', label: 'Vendredi', name: 'TEST Deadlift', isTest: true, ex: [
+          { name: 'Deadlift — TEST', sets: 8, reps: 1, key: 'dl', main: true, rest: 300, isTest: true,
+            overrides: [
+              { weight: 100, reps: 5, label: 'Échauffement' },
+              { weight: 160, reps: 3, label: 'Échauffement' },
+              { weight: 220, reps: 2, label: 'Échauffement' },
+              { weight: 250, reps: 1, label: 'Échauffement' },
+              { weight: 280, reps: 1, label: 'Échauffement' },
+              { weight: 305, reps: 1, label: 'Essai 1 cible', attempt: true },
+              { weight: 315, reps: 1, label: 'Essai 2 PR', attempt: true },
+              { weight: 320, reps: 1, label: 'Stretch PR', attempt: true },
+            ]
+          },
         ]},
-        { n: 4, label: 'Samedi', name: 'Bench ROM + High bar', ex: [
-          { name: 'Bench prise comp. ROM complet', sets: 4, reps: 3, weight: 105, rpe: 7.5, rest: 240, main: true, key: 'bench-comp' },
-          { name: 'High bar squat', sets: 3, reps: 3, weight: 180, rpe: 8, rest: 180, key: 'high-bar' },
-          { name: 'Tractions lestées', sets: 4, reps: '5-6', note: '+17,5 kg', rest: 120, key: 'pullups' },
-          { name: 'Skullcrushers', sets: 3, reps: 8, weight: 52.5, rest: 90, key: 'skull' },
-          { name: 'Pull-apart élastique', sets: 3, reps: 25, rest: 45, key: 'pull-apart' }
-        ]}
+        { n: 4, date: '2026-07-11', label: 'Samedi', name: 'Repos complet', ex: [
+          { name: 'Récupération', sets: 1, reps: '—', rest: 0, key: 'rest', note: 'Marche tranquille OK. Pas de muscu, pas de cardio dur.' },
+        ]},
       ]},
-      { n: 7, block: 'Intensification', days: [
-        { n: 1, label: 'Lundi', name: 'Squat + OHP', ex: [
-          { name: 'Squat compétition', sets: 3, reps: 2, weight: 207.5, rpe: 9, rest: 300, main: true, key: 'squat' },
-          { name: 'Squat - top single', sets: 1, reps: 1, weight: 215, rpe: 9, rest: 300, note: 'Top single du cycle', key: 'squat-single' },
-          { name: 'Pause squat 2s', sets: 2, reps: 2, weight: 180, rpe: 8, rest: 240, key: 'pause-squat' },
-          { name: 'Overhead press', sets: 3, reps: 3, weight: 87.5, rpe: 8.5, rest: 180, key: 'ohp', main: true },
-          { name: 'Bulgarian split squat', sets: 2, reps: '8/jambe', rest: 120, key: 'bulgarian' },
-          { name: 'Leg curl couché', sets: 3, reps: 10, rest: 90, key: 'leg-curl' },
-          { name: 'Gainage', sets: 2, reps: '60s', rest: 60, key: 'gainage' }
+      { n: 4, block: 'Test week', days: [
+        { n: 1, date: '2026-07-13', label: 'Lundi', name: 'TEST Squat', isTest: true, ex: [
+          { name: 'Squat — TEST', sets: 9, reps: 1, key: 'squat', main: true, rest: 300, isTest: true,
+            overrides: [
+              { weight: 60, reps: 5, label: 'Échauffement' },
+              { weight: 100, reps: 5, label: 'Échauffement' },
+              { weight: 140, reps: 3, label: 'Échauffement' },
+              { weight: 175, reps: 2, label: 'Échauffement' },
+              { weight: 200, reps: 1, label: 'Échauffement' },
+              { weight: 215, reps: 1, label: 'Échauffement' },
+              { weight: 230, reps: 1, label: 'Essai 1 cible', attempt: true },
+              { weight: 237.5, reps: 1, label: 'Essai 2 cible', attempt: true },
+              { weight: 245, reps: 1, label: 'Stretch PR', attempt: true },
+            ]
+          },
         ]},
-        { n: 2, label: 'Mercredi', name: 'Bench + Dos', ex: [
-          { name: 'Board press 1 planche', sets: 4, reps: 3, weight: 112.5, rpe: 8.5, rest: 240, main: true, key: 'board-1' },
-          { name: 'Flat DB bench', sets: 3, reps: 6, note: '+2,5 kg/main', rest: 150, key: 'db-bench' },
-          { name: 'Tirage horizontal poulie', sets: 4, reps: 6, rest: 90, key: 'row-cable' },
-          { name: 'Face pull', sets: 3, reps: 15, rest: 60, key: 'face-pull' },
-          { name: 'Triceps poulie', sets: 3, reps: 8, rest: 60, key: 'triceps' },
-          { name: 'Rotation externe', sets: 3, reps: '15/bras', rest: 45, key: 'er' }
+        { n: 2, date: '2026-07-15', label: 'Mercredi', name: 'TEST Bench + OHP', isTest: true, ex: [
+          { name: 'Bench compétition — TEST', sets: 8, reps: 1, key: 'bench', main: true, rest: 240, isTest: true,
+            overrides: [
+              { weight: 60, reps: 5, label: 'Échauffement' },
+              { weight: 80, reps: 3, label: 'Échauffement' },
+              { weight: 100, reps: 2, label: 'Échauffement' },
+              { weight: 115, reps: 1, label: 'Échauffement' },
+              { weight: 130, reps: 1, label: 'Échauffement' },
+              { weight: 140, reps: 1, label: 'Essai 1 cible', attempt: true },
+              { weight: 145, reps: 1, label: 'Essai 2 cible', attempt: true },
+              { weight: 150, reps: 1, label: 'Stretch', attempt: true },
+            ]
+          },
+          { name: 'OHP top single (optionnel)', sets: 5, reps: 1, key: 'ohp', rest: 240,
+            overrides: [
+              { weight: 50, reps: 5, label: 'Échauffement' },
+              { weight: 65, reps: 3, label: 'Échauffement' },
+              { weight: 80, reps: 1, label: 'Échauffement' },
+              { weight: 90, reps: 1, label: 'Échauffement' },
+              { weight: 100, reps: 1, label: 'Single PR', attempt: true },
+            ]
+          },
         ]},
-        { n: 3, label: 'Vendredi', name: 'Deadlift', ex: [
-          { name: 'Soulevé de terre', sets: 2, reps: 1, weight: 290, rpe: 9, rest: 300, main: true, key: 'dl' },
-          { name: 'DL back-off', sets: 1, reps: 3, weight: 245, rpe: 8, note: 'Après les singles', rest: 240, key: 'dl-backoff' },
-          { name: 'Romanian deadlift', sets: 2, reps: 6, weight: 185, rest: 180, key: 'rdl' },
-          { name: '45° back extension lestée', sets: 3, reps: 10, rest: 90, key: 'back-ext' },
-          { name: 'Tirage barre', sets: 3, reps: 6, weight: 100, rest: 120, key: 'row-bb' }
-        ]},
-        { n: 4, label: 'Samedi', name: 'Bench ROM + High bar', ex: [
-          { name: 'Bench prise comp. ROM complet', sets: 4, reps: 2, weight: 110, rpe: 8, rest: 240, main: true, key: 'bench-comp' },
-          { name: 'High bar squat', sets: 2, reps: 3, weight: 180, rpe: 8, rest: 180, key: 'high-bar' },
-          { name: 'Tractions lestées', sets: 3, reps: 5, note: '+20 kg', rest: 120, key: 'pullups' },
-          { name: 'Skullcrushers', sets: 3, reps: 6, weight: 55, rest: 90, key: 'skull' },
-          { name: 'Pull-apart élastique', sets: 3, reps: 25, rest: 45, key: 'pull-apart' }
-        ]}
       ]},
-      { n: 8, block: 'Test', days: [
-        { n: 1, label: 'Lundi', name: 'Squat - Test', ex: [
-          { name: 'Squat compétition - top single', sets: 1, reps: 1, weight: 210, rpe: 9, rest: 300, main: true, note: 'Top single visé 205-215 selon ressenti', key: 'squat' }
-        ]},
-        { n: 2, label: 'Mercredi', name: 'Bench - Test', ex: [
-          { name: 'Bench prise comp. - top single', sets: 1, reps: 1, weight: 115, rpe: 8, rest: 300, main: true, note: 'Si épaule OK. Sinon Board 1pl @ 120 kg', key: 'bench-comp' }
-        ]},
-        { n: 3, label: 'Vendredi', name: 'DL - Test', ex: [
-          { name: 'Soulevé de terre - top single', sets: 1, reps: 1, weight: 290, rpe: 9, rest: 300, main: true, note: 'Top single visé 285-295 selon ressenti', key: 'dl' }
-        ]},
-        { n: 4, label: 'Samedi', name: 'Repos', ex: [
-          { name: 'Récupération complète', sets: 1, reps: '—', rest: 0, key: 'rest' }
-        ]}
-      ]}
     ];
 
     // ============================================================
-    // STATE & STORAGE
+    // STORAGE
     // ============================================================
-    const STORAGE_KEY = 'pl-tracker-progress';
-    const STORAGE_STEPS_KEY = 'pl-tracker-steps';
+    const K_PROGRESS = 'pl-progress';
+    const K_BW = 'pl-bw';
+    const K_READINESS = 'pl-readiness';
 
     let state = {
       view: 'today',
+      lastView: null,
       activeSession: null,
       progress: {},
-      steps: {},
+      bw: {},
+      readiness: {},
       openWeek: 1,
-      sessionData: null
+      sessionData: null,
     };
 
     let timer = { interval: null, secLeft: 0, exName: '', active: false };
+    let nextAnim = 'fade';
+    let lastToggle = null;
 
-    function loadProgress() {
-      try {
-        const raw = localStorage.getItem(STORAGE_KEY);
-        if (raw) state.progress = JSON.parse(raw);
-      } catch (e) { /* ignore */ }
+    function loadAll() {
+      try { const r = localStorage.getItem(K_PROGRESS); if (r) state.progress = JSON.parse(r); } catch (e) {}
+      try { const r = localStorage.getItem(K_BW); if (r) state.bw = JSON.parse(r); } catch (e) {}
+      try { const r = localStorage.getItem(K_READINESS); if (r) state.readiness = JSON.parse(r); } catch (e) {}
     }
+    function save(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
+    function saveProgress() { save(K_PROGRESS, state.progress); }
+    function saveBw() { save(K_BW, state.bw); }
+    function saveReadiness() { save(K_READINESS, state.readiness); }
 
-    function saveProgress() {
-      try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(state.progress));
-      } catch (e) { console.error('Save failed:', e); }
-    }
-
-    function loadSteps() {
-      try {
-        const raw = localStorage.getItem(STORAGE_STEPS_KEY);
-        if (raw) state.steps = JSON.parse(raw);
-      } catch (e) { /* ignore */ }
-    }
-
-    function saveSteps() {
-      try {
-        localStorage.setItem(STORAGE_STEPS_KEY, JSON.stringify(state.steps));
-      } catch (e) { console.error('Save steps failed:', e); }
-    }
-
-    function handleUrlParams() {
-      const params = new URLSearchParams(window.location.search);
-      const steps = params.get('steps');
-      if (steps !== null) {
-        const n = parseInt(steps, 10);
-        if (!isNaN(n) && n >= 0) {
-          setTodaySteps(n);
-          window.history.replaceState({}, '', window.location.pathname);
-        }
-      }
-    }
-
+    // ============================================================
+    // HELPERS
+    // ============================================================
     function sessionKey(w, d) { return `s${w}-d${d}`; }
-
-    function getTodayDateKey() {
+    function escapeHtml(s) {
+      return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    }
+    function formatTime(s) {
+      const m = Math.floor(s / 60), r = s % 60;
+      return `${m}:${r.toString().padStart(2, '0')}`;
+    }
+    function todayKey() {
       const d = new Date();
-      return d.toISOString().slice(0, 10);
+      return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
     }
-
-    function getTodayInfo() {
+    function dateInfo() {
       const d = new Date();
-      const dayOfWeek = d.getDay(); // 0=Sun, 1=Mon, ..., 6=Sat
-      const programDayMap = { 1: 1, 3: 2, 5: 3, 6: 4 };
-      const todayDayN = programDayMap[dayOfWeek] || null;
-      const dateStr = d.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' });
-      return { dayOfWeek, todayDayN, dateStr };
+      return d.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' });
     }
-
-    function getTodaySteps() {
-      const v = state.steps[getTodayDateKey()];
-      return (v === undefined || v === null) ? null : v;
+    function daysBetween(dateStr1, dateStr2) {
+      const a = new Date(dateStr1 + 'T00:00:00');
+      const b = new Date(dateStr2 + 'T00:00:00');
+      return Math.round((b - a) / 86400000);
     }
-
-    function setTodaySteps(n) {
-      state.steps[getTodayDateKey()] = n;
-      saveSteps();
+    function fmtDate(dateStr) {
+      const d = new Date(dateStr + 'T00:00:00');
+      return d.toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short' });
     }
-
-    function findTodaySession() {
-      const next = findNextSession();
-      if (!next) return null;
-      const ti = getTodayInfo();
-      if (ti.todayDayN === null) {
-        return { type: 'rest', next };
-      }
-      if (next.day === ti.todayDayN) {
-        return { type: 'today', week: next.week, day: next.day };
-      }
-      const todaysKey = sessionKey(next.week, ti.todayDayN);
-      if (state.progress[todaysKey] && state.progress[todaysKey].completed) {
-        return { type: 'done-today', next };
-      }
-      return { type: 'upcoming', next };
+    function fmtDateShort(dateStr) {
+      const d = new Date(dateStr + 'T00:00:00');
+      return d.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
+    }
+    // Brzycki formula for e1RM, capped at 12 reps
+    function e1rm(weight, reps) {
+      if (!weight || !reps || reps < 1) return null;
+      const r = Math.min(parseInt(reps), 12);
+      if (r === 1) return weight;
+      return weight * 36 / (37 - r);
     }
 
     function findNextSession() {
+      const today = todayKey();
+      // Today's session first
+      for (const w of PROGRAM) {
+        for (const d of w.days) {
+          if (d.date === today) {
+            const k = sessionKey(w.n, d.n);
+            if (!state.progress[k]?.completed) return { week: w.n, day: d.n };
+          }
+        }
+      }
+      // Future or past incomplete sessions
       for (const w of PROGRAM) {
         for (const d of w.days) {
           const k = sessionKey(w.n, d.n);
-          if (!state.progress[k] || !state.progress[k].completed) {
-            return { week: w.n, day: d.n };
-          }
+          if (!state.progress[k]?.completed) return { week: w.n, day: d.n };
         }
       }
       return null;
     }
 
-    function escapeHtml(s) {
-      return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    function findTodaySessionType() {
+      const today = todayKey();
+      const next = findNextSession();
+      if (!next) return { type: 'done', next: null };
+
+      // Check exact date match
+      for (const w of PROGRAM) {
+        for (const d of w.days) {
+          if (d.date === today) {
+            const k = sessionKey(w.n, d.n);
+            if (state.progress[k]?.completed) return { type: 'done-today', next };
+            return { type: 'today', week: w.n, day: d.n };
+          }
+        }
+      }
+      return { type: 'rest', next };
     }
 
-    function formatTime(s) {
-      const m = Math.floor(s / 60);
-      const r = s % 60;
-      return `${m}:${r.toString().padStart(2, '0')}`;
+    function findNextTest() {
+      const today = todayKey();
+      const tests = [];
+      for (const w of PROGRAM) {
+        for (const d of w.days) {
+          if (d.isTest && d.date >= today) {
+            const k = sessionKey(w.n, d.n);
+            if (!state.progress[k]?.completed) {
+              tests.push({ ...d, week: w.n });
+            }
+          }
+        }
+      }
+      tests.sort((a,b) => a.date.localeCompare(b.date));
+      return tests[0] || null;
     }
+
+    function daysSinceLastLift(liftKey) {
+      const groups = {
+        'squat': ['squat', 'tempo-squat'],
+        'bench': ['bench', 'bench-pause', 'db-bench'],
+        'dl': ['dl', 'rdl'],
+        'ohp': ['ohp'],
+      };
+      const keys = groups[liftKey] || [liftKey];
+      let mostRecent = null;
+      for (const [k, sess] of Object.entries(state.progress)) {
+        if (!sess.completed) continue;
+        const has = sess.exercises.some(e => {
+          const def = PROGRAM.flatMap(w => w.days).flatMap(dd => dd.ex).find(x => x.name === e.name);
+          return def && keys.includes(def.key) && e.sets.some(s => s.done);
+        });
+        if (has && sess.date) {
+          const d = new Date(sess.date);
+          if (!mostRecent || d > mostRecent) mostRecent = d;
+        }
+      }
+      if (!mostRecent) return null;
+      const diff = Math.floor((new Date() - mostRecent) / 86400000);
+      return diff;
+    }
+
+    function findLastCompletedSession() {
+      const completed = Object.entries(state.progress)
+        .filter(([_, s]) => s.completed)
+        .map(([k, s]) => ({ k, ...s }))
+        .sort((a, b) => new Date(b.date) - new Date(a.date));
+      return completed[0] || null;
+    }
+
+    function getTodayBw() { return state.bw[todayKey()] ?? null; }
+    function getRecentBw() {
+      const keys = Object.keys(state.bw).sort().reverse();
+      return keys.length > 0 ? state.bw[keys[0]] : null;
+    }
+    function getTodayReadiness() { return state.readiness[todayKey()] ?? null; }
 
     // ============================================================
-    // VIEWS
+    // RENDER: TODAY
     // ============================================================
-
-    function renderStepsWidget(steps) {
-      const display = steps !== null ? steps.toLocaleString('fr-FR') : '—';
-      return `
-        <div class="steps-widget">
-          <div class="steps-info">
-            <div class="steps-label">PAS AUJOURD'HUI</div>
-            <div class="steps-num">${display}</div>
-          </div>
-          <div class="steps-actions">
-            <button class="steps-btn-sync" data-action="sync-steps">↻ Santé</button>
-            <button class="steps-btn-edit" data-action="edit-steps">Manuel</button>
-          </div>
-        </div>
-      `;
-    }
-
     function renderToday() {
       const total = PROGRAM.reduce((a, w) => a + w.days.length, 0);
       const done = Object.values(state.progress).filter(p => p.completed).length;
       const pct = Math.round((done / total) * 100);
-      const ti = getTodayInfo();
-      const steps = getTodaySteps();
-      const stepsBlock = renderStepsWidget(steps);
-      const dateLine = ti.dateStr.charAt(0).toUpperCase() + ti.dateStr.slice(1);
+      const dateLine = dateInfo();
+      const dateCapitalized = dateLine.charAt(0).toUpperCase() + dateLine.slice(1);
 
-      if (!findNextSession()) {
-        return `
-          <div class="pad">
-            <div class="eyebrow">${escapeHtml(dateLine)}</div>
-            <h1>Terminé</h1>
-            <div class="subtitle">Programme 8 semaines complété.</div>
-            ${stepsBlock}
-            <div class="big-stat">
-              <div class="big-num">${done}/${total}</div>
-              <div class="big-lbl">séances</div>
+      // Countdown to next test
+      const nextTest = findNextTest();
+      let countdownBlock = '';
+      if (nextTest) {
+        const days = daysBetween(todayKey(), nextTest.date);
+        const testLabel = nextTest.name.replace(/^TEST\s+/i, '').replace(/\s+\+\s*OHP.*$/i, '').toUpperCase();
+        countdownBlock = `
+          <div class="countdown">
+            <div class="countdown-left">
+              <div class="countdown-label">PROCHAIN TEST</div>
+              <div class="countdown-target">${escapeHtml(testLabel)}</div>
+              <div class="countdown-date">${escapeHtml(fmtDate(nextTest.date))}</div>
+            </div>
+            <div>
+              <div class="countdown-num">J−${days}</div>
+              <div class="countdown-num-sub">JOURS</div>
             </div>
           </div>
         `;
       }
 
-      const info = findTodaySession();
-      let sectionLabel = 'PROCHAINE SÉANCE';
-      let buttonLabel = 'VOIR LA PROCHAINE SÉANCE';
-      let targetWeek, targetDay;
-
-      if (info.type === 'today') {
-        sectionLabel = 'SÉANCE DU JOUR';
-        buttonLabel = 'DÉMARRER LA SÉANCE';
-        targetWeek = info.week;
-        targetDay = info.day;
-      } else if (info.type === 'done-today') {
-        sectionLabel = 'TERMINÉE AUJOURD\'HUI · PROCHAINE :';
-        targetWeek = info.next.week;
-        targetDay = info.next.day;
-      } else if (info.type === 'rest') {
-        sectionLabel = 'JOUR DE REPOS · PROCHAINE SÉANCE';
-        targetWeek = info.next.week;
-        targetDay = info.next.day;
-      } else {
-        sectionLabel = 'PROCHAINE SÉANCE';
-        targetWeek = info.next.week;
-        targetDay = info.next.day;
-      }
-
-      const w = PROGRAM.find(x => x.n === targetWeek);
-      const d = w.days.find(x => x.n === targetDay);
-
-      const sessionBlock = `
-        <div class="session-section">
-          <div class="section-label">${sectionLabel}</div>
-          <div class="session-day-name">${escapeHtml(d.label)} · ${escapeHtml(d.name)}</div>
-          <div class="session-week">S${w.n} · ${escapeHtml(w.block)}</div>
-
-          <div class="ex-list">
-            ${d.ex.map(e => `
-              <div class="ex-list-row">
-                <div class="ex-list-name">
-                  <span class="ex-mark ${e.main ? 'main' : ''}">${e.main ? '●' : '○'}</span>
-                  ${escapeHtml(e.name)}
-                </div>
-                <div class="ex-list-stats">${e.sets}×${e.reps}${e.weight ? ` · ${e.weight}kg` : ''}${e.rpe ? ` · RPE ${e.rpe}` : ''}</div>
-              </div>
-            `).join('')}
+      // Recovery status
+      const liftKeys = [
+        { key: 'squat', label: 'SQ' },
+        { key: 'bench', label: 'BP' },
+        { key: 'dl', label: 'DL' },
+        { key: 'ohp', label: 'OHP' },
+      ];
+      const recovBlock = `
+        <div class="recovery">
+          <div class="recovery-head">
+            <span class="section-label">STATUT RÉCUP</span>
           </div>
-
-          <button class="cta" data-action="start-session" data-week="${w.n}" data-day="${d.n}">${buttonLabel}</button>
+          <div class="recovery-grid">
+            ${liftKeys.map(lk => {
+              const days = daysSinceLastLift(lk.key);
+              let cls = 'never', text = '—';
+              if (days !== null) {
+                if (days === 0) { cls = 'fresh'; text = 'auj'; }
+                else if (days === 1) { cls = 'warning'; text = '1j'; }
+                else if (days === 2) { cls = 'warning'; text = '2j'; }
+                else { cls = 'ready'; text = days + 'j'; }
+              }
+              return `
+                <div class="recovery-item">
+                  <span class="recovery-lift">${lk.label}</span>
+                  <span class="recovery-time ${cls}">${text}</span>
+                </div>
+              `;
+            }).join('')}
+          </div>
         </div>
       `;
 
+      // BW + Readiness
+      const bw = getTodayBw() ?? getRecentBw();
+      const todayBw = getTodayBw();
+      const readiness = getTodayReadiness();
+      const emojis = ['😴', '🙂', '💪', '🔥'];
+      const quickBlock = `
+        <div class="quick-row">
+          <div class="quick-card">
+            <div class="eyebrow">POIDS DE CORPS</div>
+            <div class="bw-display ${bw === null ? 'empty' : ''}" data-action="edit-bw">
+              ${bw !== null ? bw.toFixed(1).replace('.', ',') + '<span class="bw-unit">kg</span>' : 'noter'}
+            </div>
+          </div>
+          <div class="quick-card">
+            <div class="eyebrow">ÉTAT DU JOUR</div>
+            <div class="readiness-row">
+              ${emojis.map(e => `
+                <button class="readiness-btn ${readiness === e ? 'selected' : ''}"
+                  data-action="set-readiness" data-emoji="${e}">${e}</button>
+              `).join('')}
+            </div>
+          </div>
+        </div>
+      `;
+
+      // Today's session
+      const ti = findTodaySessionType();
+      let sessionBlock = '';
+      if (ti.type === 'done') {
+        sessionBlock = `
+          <div class="session-section">
+            <div class="section-label session-section-label">PROGRAMME TERMINÉ</div>
+            <div class="session-day-name">${done}/${total} séances</div>
+            <div class="session-week-info">Profite des vacances !</div>
+          </div>
+        `;
+      } else {
+        let sectionLabel, targetWeek, targetDay, buttonLabel;
+        if (ti.type === 'today') {
+          sectionLabel = 'SÉANCE DU JOUR';
+          buttonLabel = 'DÉMARRER LA SÉANCE';
+          targetWeek = ti.week; targetDay = ti.day;
+        } else if (ti.type === 'done-today') {
+          sectionLabel = 'TERMINÉE AUJOURD\'HUI · PROCHAINE :';
+          buttonLabel = 'VOIR LA SÉANCE';
+          targetWeek = ti.next.week; targetDay = ti.next.day;
+        } else {
+          sectionLabel = 'JOUR DE REPOS · PROCHAINE SÉANCE';
+          buttonLabel = 'VOIR LA SÉANCE';
+          targetWeek = ti.next.week; targetDay = ti.next.day;
+        }
+        const w = PROGRAM.find(x => x.n === targetWeek);
+        const d = w.days.find(x => x.n === targetDay);
+
+        sessionBlock = `
+          <div class="session-section">
+            <div class="section-label session-section-label">${sectionLabel}</div>
+            <div class="session-day-name">${escapeHtml(d.label)} · ${escapeHtml(d.name)}</div>
+            <div class="session-week-info">S${w.n} · ${escapeHtml(w.block)} · ${fmtDateShort(d.date)}</div>
+            <div class="ex-list">
+              ${d.ex.map(e => {
+                let stats;
+                if (e.isTest) {
+                  stats = `${e.overrides ? e.overrides.length : e.sets} étapes`;
+                } else {
+                  stats = `${e.sets}×${e.reps}${e.weight ? ` · ${e.weight}kg` : ''}${e.rpe ? ` · RPE ${e.rpe}` : ''}`;
+                }
+                return `
+                  <div class="ex-list-row">
+                    <div class="ex-list-name">
+                      <span class="ex-mark ${e.main ? 'main' : ''}">${e.main ? '●' : '○'}</span>
+                      ${escapeHtml(e.name)}
+                    </div>
+                    <div class="ex-list-stats">${stats}</div>
+                  </div>
+                `;
+              }).join('')}
+            </div>
+            <button class="cta" data-action="start-session" data-week="${w.n}" data-day="${d.n}">${buttonLabel}</button>
+          </div>
+        `;
+      }
+
+      // Last session
+      const last = findLastCompletedSession();
+      let lastBlock = '';
+      if (last) {
+        const lastDef = PROGRAM.flatMap(w => w.days).find(dd => dd.date === last.date);
+        const mainEx = last.exercises.find(e => {
+          const def = PROGRAM.flatMap(w => w.days).flatMap(dd => dd.ex).find(x => x.name === e.name);
+          return def?.main;
+        });
+        let topSetStr = '';
+        if (mainEx) {
+          const topSet = mainEx.sets.filter(s => s.done && s.weight).reduce((m, s) => (s.weight > (m?.weight || 0) ? s : m), null);
+          if (topSet) {
+            topSetStr = `Top: ${mainEx.name.split('—')[0].trim()} ${topSet.weight}×${topSet.reps}${topSet.rpe ? ' RPE ' + topSet.rpe : ''}`;
+          }
+        }
+        lastBlock = `
+          <div class="last-session">
+            <div class="eyebrow">DERNIÈRE SÉANCE</div>
+            <div class="last-session-info">${lastDef ? escapeHtml(lastDef.label + ' · ' + lastDef.name) : 'Séance complétée'}</div>
+            ${topSetStr ? `<div class="last-session-detail">${escapeHtml(topSetStr)}</div>` : ''}
+          </div>
+        `;
+      } else {
+        lastBlock = `
+          <div class="last-session">
+            <div class="eyebrow">DERNIÈRE SÉANCE</div>
+            <div class="last-session-empty">Pas encore de séance complétée.</div>
+          </div>
+        `;
+      }
+
       return `
         <div class="pad">
-          <div class="eyebrow">${escapeHtml(dateLine)}</div>
+          <div class="eyebrow">${escapeHtml(dateCapitalized)}</div>
           <h1>Aujourd'hui</h1>
-
-          ${stepsBlock}
-
+          ${countdownBlock}
+          ${recovBlock}
+          ${quickBlock}
           ${sessionBlock}
-
+          ${lastBlock}
           <div class="progress-block">
-            <div class="progress-lbl">
-              <span>PROGRESSION</span>
-              <span>${done}/${total}</span>
-            </div>
-            <div class="progress-bar">
-              <div class="progress-fill" style="width:${pct}%"></div>
-            </div>
+            <div class="progress-lbl"><span>PROGRESSION CYCLE</span><span>${done}/${total}</span></div>
+            <div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>
           </div>
         </div>
       `;
     }
 
+    // ============================================================
+    // RENDER: PROGRAMME
+    // ============================================================
     function renderProgram() {
       const w = PROGRAM.find(x => x.n === state.openWeek);
-
       return `
         <div class="pad">
-          <h1>PROGRAMME</h1>
-          <div class="subtitle">8 semaines · 4 séances/sem.</div>
-
+          <div class="eyebrow">PEAK BLOCK</div>
+          <h1>Programme</h1>
+          <div class="subtitle">4 semaines · 22 juin → 15 juillet</div>
           <div class="week-tabs">
             ${PROGRAM.map(week => `
               <button class="week-tab ${week.n === state.openWeek ? 'active' : ''}" data-action="open-week" data-week="${week.n}">
@@ -669,19 +820,18 @@
               </button>
             `).join('')}
           </div>
-
           <div class="block-badge">${escapeHtml(w.block)}</div>
-
           ${w.days.map(d => {
             const done = state.progress[sessionKey(w.n, d.n)]?.completed;
             const exPreview = d.ex.slice(0, 3).map(e => e.name.split(' ')[0]).join(' · ');
             const more = d.ex.length > 3 ? ` · +${d.ex.length - 3}` : '';
+            const classes = `day-row ${done ? 'done' : ''} ${d.isTest ? 'test' : ''}`.trim();
             return `
-              <button class="day-row ${done ? 'done' : ''}" data-action="start-session" data-week="${w.n}" data-day="${d.n}">
+              <button class="${classes}" data-action="start-session" data-week="${w.n}" data-day="${d.n}">
                 <div>
-                  <div class="day-label">${escapeHtml(d.label)}</div>
+                  <div class="day-label">${escapeHtml(d.label)} · ${fmtDateShort(d.date)}</div>
                   <div class="day-name">${escapeHtml(d.name)}</div>
-                  <div class="day-ex">${escapeHtml(exPreview)}${more}</div>
+                  <div class="day-date">${escapeHtml(exPreview)}${more}</div>
                 </div>
                 <div class="day-arrow ${done ? 'done' : ''}">${done ? '✓' : '›'}</div>
               </button>
@@ -691,6 +841,9 @@
       `;
     }
 
+    // ============================================================
+    // RENDER: SESSION
+    // ============================================================
     function renderSession() {
       const { week, day } = state.activeSession;
       const w = PROGRAM.find(x => x.n === week);
@@ -704,49 +857,50 @@
       return `
         <div class="pad" style="padding-bottom:120px;">
           <button class="back-btn" data-action="back-to-today">← retour</button>
-
-          <div class="eyebrow">SEMAINE ${week} · ${d.label.toUpperCase()}</div>
+          <div class="eyebrow">SEMAINE ${week} · ${d.label.toUpperCase()} · ${fmtDateShort(d.date)}</div>
           <h1>${escapeHtml(d.name)}</h1>
-
           <div class="session-progress">
             <span>${doneSets}/${totalSets} séries</span>
             <div class="mini-bar"><div class="mini-bar-fill" style="width:${pct}%"></div></div>
           </div>
-
           ${sd.exercises.map((ex, exIdx) => {
             const def = d.ex[exIdx];
+            const isTest = def.isTest;
             return `
               <div class="ex-card">
                 <div class="ex-name">${escapeHtml(ex.name)}</div>
-                <div class="ex-target">
-                  Cible : ${def.sets}×${def.reps}${def.weight ? ` @ ${def.weight} kg` : ''}${def.rpe ? ` (RPE ${def.rpe})` : ''}
-                </div>
+                ${!isTest ? `<div class="ex-target">Cible : ${def.sets}×${def.reps}${def.weight ? ` @ ${def.weight} kg` : ''}${def.rpe ? ` (RPE ${def.rpe})` : ''}</div>` : ''}
                 ${def.note ? `<div class="ex-note">${escapeHtml(def.note)}</div>` : ''}
+                ${isTest ? `<div class="ex-test-banner">TEST · échauffement progressif puis essais</div>` : ''}
 
-                <div class="sets-grid">
+                <div class="sets-grid ${isTest ? 'with-label' : ''}">
                   <div class="set-head">#</div>
-                  <div class="set-head">kg</div>
-                  <div class="set-head">reps</div>
-                  <div class="set-head">RPE</div>
+                  ${isTest ? '<div class="set-head">étape</div>' : '<div class="set-head">kg</div>'}
+                  <div class="set-head">${isTest ? 'kg' : 'reps'}</div>
+                  <div class="set-head">${isTest ? 'reps' : 'RPE'}</div>
                   <div class="set-head">✓</div>
-
-                  ${ex.sets.map((set, setIdx) => `
-                    <div class="set-num">${setIdx + 1}</div>
-                    <input class="set-input" type="number" step="2.5" inputmode="decimal"
-                      data-ex="${exIdx}" data-set="${setIdx}" data-field="weight"
-                      value="${set.weight ?? ''}" placeholder="—">
-                    <input class="set-input" type="text" inputmode="numeric"
-                      data-ex="${exIdx}" data-set="${setIdx}" data-field="reps"
-                      value="${set.reps ?? ''}" placeholder="—">
-                    <input class="set-input" type="number" step="0.5" min="1" max="10" inputmode="decimal"
-                      data-ex="${exIdx}" data-set="${setIdx}" data-field="rpe"
-                      value="${set.rpe ?? ''}" placeholder="—">
-                    <button class="set-check ${set.done ? 'done' : ''}"
-                      data-action="toggle-set" data-ex="${exIdx}" data-set="${setIdx}"
-                      data-rest="${def.rest}" data-exname="${escapeHtml(ex.name)}">
-                      ${set.done ? '✓' : ''}
-                    </button>
-                  `).join('')}
+                  ${ex.sets.map((set, setIdx) => {
+                    const labelText = set.label ? set.label : '';
+                    const isAttempt = labelText.toLowerCase().includes('essai') || labelText.toLowerCase().includes('stretch') || labelText.toLowerCase().includes('pr') || labelText.toLowerCase().includes('single');
+                    return `
+                      <div class="set-num">${setIdx + 1}</div>
+                      ${isTest ? `<div class="set-label ${isAttempt ? 'attempt' : ''}">${escapeHtml(labelText)}</div>` : ''}
+                      <input class="set-input" type="number" step="2.5" inputmode="decimal"
+                        data-ex="${exIdx}" data-set="${setIdx}" data-field="weight"
+                        value="${set.weight ?? ''}" placeholder="—">
+                      <input class="set-input" type="${isTest ? 'number' : 'text'}" inputmode="numeric"
+                        data-ex="${exIdx}" data-set="${setIdx}" data-field="reps"
+                        value="${set.reps ?? ''}" placeholder="—">
+                      ${!isTest ? `<input class="set-input" type="number" step="0.5" min="1" max="10" inputmode="decimal"
+                        data-ex="${exIdx}" data-set="${setIdx}" data-field="rpe"
+                        value="${set.rpe ?? ''}" placeholder="—">` : ''}
+                      <button class="set-check ${set.done ? 'done' : ''}"
+                        data-action="toggle-set" data-ex="${exIdx}" data-set="${setIdx}"
+                        data-rest="${def.rest}" data-exname="${escapeHtml(ex.name)}">
+                        ${set.done ? '✓' : ''}
+                      </button>
+                    `;
+                  }).join('')}
                 </div>
               </div>
             `;
@@ -754,7 +908,6 @@
 
           <button class="cta" data-action="end-session">TERMINER LA SÉANCE</button>
         </div>
-
         ${timer.active ? `
           <div class="timer">
             <div class="timer-lbl">REPOS · ${escapeHtml(timer.exName)}</div>
@@ -765,76 +918,220 @@
       `;
     }
 
+    // ============================================================
+    // RENDER: STATS
+    // ============================================================
     function renderStats() {
       const completed = Object.entries(state.progress)
         .filter(([_, s]) => s.completed)
-        .map(([k, s]) => ({ k, ...s }));
-
+        .map(([k, s]) => ({ k, ...s }))
+        .sort((a, b) => new Date(a.date) - new Date(b.date));
       const total = PROGRAM.reduce((a, w) => a + w.days.length, 0);
       const doneCount = completed.length;
-      const pct = total ? Math.round((doneCount / total) * 100) : 0;
 
-      // PRs by main lift key
-      const mainLifts = ['squat', 'bench-comp', 'dl', 'ohp', 'spoto', 'board-2', 'board-1'];
-      const labels = {
-        'squat': 'Squat', 'bench-comp': 'Bench', 'dl': 'Deadlift',
-        'ohp': 'OHP', 'spoto': 'Spoto press', 'board-2': 'Board 2pl', 'board-1': 'Board 1pl'
-      };
-      const prs = {};
+      if (doneCount === 0) {
+        return `
+          <div class="pad">
+            <div class="eyebrow">CYCLE EN COURS</div>
+            <h1>Statistiques</h1>
+            <div class="empty">Termine ta première séance du cycle pour voir tes stats.</div>
+          </div>
+        `;
+      }
+
+      // Total tonnage
+      let totalTonnage = 0;
       completed.forEach(s => {
         s.exercises.forEach(e => {
-          const def = PROGRAM.flatMap(w => w.days).flatMap(d => d.ex).find(x => x.name === e.name);
-          const key = def?.key;
-          if (key && mainLifts.includes(key)) {
-            const top = e.sets.filter(set => set.done && set.weight)
-              .reduce((m, set) => set.weight > (m?.weight || 0) ? set : m, null);
-            if (top && (!prs[key] || top.weight > prs[key].weight)) {
-              prs[key] = { weight: top.weight, reps: top.reps };
+          e.sets.forEach(set => {
+            if (set.done && set.weight && set.reps) {
+              const r = parseInt(set.reps) || 0;
+              totalTonnage += set.weight * r;
             }
+          });
+        });
+      });
+
+      // Summary
+      const summary = `
+        <div class="stats-summary">
+          <div class="stat-box">
+            <div class="stat-num">${doneCount}</div>
+            <div class="stat-lbl">séances · /${total}</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-num">${Math.round(doneCount/total*100)}%</div>
+            <div class="stat-lbl">complétion</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-num">${(totalTonnage/1000).toFixed(1)}t</div>
+            <div class="stat-lbl">tonnage cycle</div>
+          </div>
+        </div>
+      `;
+
+      // e1RM evolution per main lift
+      const mainLiftKeys = ['squat', 'bench', 'dl', 'ohp'];
+      const liftLabels = { squat: 'SQUAT', bench: 'BENCH', dl: 'DEADLIFT', ohp: 'OHP' };
+
+      // Find best e1RM per session for each lift
+      const e1rmHistory = {};
+      mainLiftKeys.forEach(lk => e1rmHistory[lk] = []);
+      completed.forEach(s => {
+        mainLiftKeys.forEach(lk => {
+          let bestE1RM = 0, bestSet = null;
+          s.exercises.forEach(e => {
+            const def = PROGRAM.flatMap(w => w.days).flatMap(d => d.ex).find(x => x.name === e.name);
+            if (!def || def.key !== lk) return;
+            e.sets.forEach(set => {
+              if (set.done && set.weight && set.reps) {
+                const r = parseInt(set.reps) || 0;
+                const v = e1rm(set.weight, r);
+                if (v && v > bestE1RM) { bestE1RM = v; bestSet = set; }
+              }
+            });
+          });
+          if (bestE1RM > 0) {
+            e1rmHistory[lk].push({ date: s.date, value: bestE1RM, set: bestSet });
           }
         });
       });
 
-      // Volume per session
-      const volData = completed.map(s => {
-        const vol = s.exercises.reduce((a, e) => {
-          return a + e.sets.reduce((b, set) => {
+      const e1rmCards = mainLiftKeys.map(lk => {
+        const data = e1rmHistory[lk];
+        if (data.length === 0) {
+          return `
+            <div class="e1rm-card">
+              <div class="e1rm-name">${liftLabels[lk]}</div>
+              <div class="e1rm-val">—</div>
+              <div class="e1rm-trend">aucune donnée</div>
+            </div>
+          `;
+        }
+        const current = data[data.length - 1].value;
+        const first = data[0].value;
+        const delta = current - first;
+        const trendClass = delta > 0 ? 'up' : '';
+        const trendStr = data.length > 1 ? (delta > 0 ? `+${delta.toFixed(1)} kg` : `${delta.toFixed(1)} kg`) : 'départ';
+        return `
+          <div class="e1rm-card">
+            <div class="e1rm-name">${liftLabels[lk]}</div>
+            <div class="e1rm-val">${current.toFixed(1)} kg</div>
+            <div class="e1rm-trend ${trendClass}">${trendStr}</div>
+          </div>
+        `;
+      }).join('');
+
+      // e1RM line chart (single chart with all lifts)
+      const allDates = [...new Set(completed.map(s => s.date))].sort();
+      const colors = { squat: '#D4382F', bench: '#E5C547', dl: '#6FA85B', ohp: '#5BAFFF' };
+      let multiLineChart = '';
+      if (allDates.length > 1) {
+        const W = 320, H = 200;
+        const pad = { l: 35, r: 8, t: 14, b: 30 };
+        const innerW = W - pad.l - pad.r;
+        const innerH = H - pad.t - pad.b;
+        const allVals = mainLiftKeys.flatMap(lk => e1rmHistory[lk].map(d => d.value));
+        if (allVals.length > 0) {
+          const maxV = Math.max(...allVals);
+          const minV = Math.min(...allVals);
+          const range = (maxV - minV) || 1;
+          const padR = range * 0.1;
+          const yMax = maxV + padR;
+          const yMin = Math.max(0, minV - padR);
+          const yRange = yMax - yMin || 1;
+
+          const yToPx = v => pad.t + innerH - ((v - yMin) / yRange) * innerH;
+          const xToPx = i => pad.l + (allDates.length === 1 ? innerW/2 : (i / (allDates.length - 1)) * innerW);
+
+          const lines = mainLiftKeys.map(lk => {
+            const points = e1rmHistory[lk].map(d => {
+              const idx = allDates.indexOf(d.date);
+              return { x: xToPx(idx), y: yToPx(d.value) };
+            });
+            if (points.length === 0) return '';
+            const path = points.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`).join(' ');
+            return `
+              <path d="${path}" stroke="${colors[lk]}" stroke-width="2" fill="none" />
+              ${points.map(p => `<circle cx="${p.x}" cy="${p.y}" r="3" fill="${colors[lk]}"/>`).join('')}
+            `;
+          }).join('');
+
+          // y-axis ticks
+          const ticks = [0, 0.5, 1].map(t => {
+            const v = yMin + yRange * t;
+            const y = yToPx(v);
+            return `
+              <line class="grid-line" x1="${pad.l}" y1="${y}" x2="${W - pad.r}" y2="${y}"/>
+              <text class="axis-lbl" x="${pad.l - 4}" y="${y + 3}" text-anchor="end">${Math.round(v)}</text>
+            `;
+          }).join('');
+
+          // Legend
+          const legend = mainLiftKeys.map((lk, i) => `
+            <g transform="translate(${pad.l + i * 70}, ${H - 8})">
+              <rect x="0" y="-7" width="10" height="2" fill="${colors[lk]}"/>
+              <text class="axis-lbl" x="14" y="-2">${liftLabels[lk].substring(0,4)}</text>
+            </g>
+          `).join('');
+
+          multiLineChart = `
+            <div class="chart-wrap">
+              <svg class="chart-svg" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet">
+                ${ticks}
+                ${lines}
+                ${legend}
+              </svg>
+            </div>
+          `;
+        }
+      }
+
+      // Weekly tonnage chart (by week of program)
+      const weeklyTonnage = {};
+      completed.forEach(s => {
+        const def = PROGRAM.flatMap(w => w.days.map(d => ({...d, week: w.n}))).find(dd => dd.date === s.date);
+        if (!def) return;
+        const wk = def.week;
+        if (!weeklyTonnage[wk]) weeklyTonnage[wk] = 0;
+        s.exercises.forEach(e => {
+          e.sets.forEach(set => {
             if (set.done && set.weight && set.reps) {
               const r = parseInt(set.reps) || 0;
-              return b + (set.weight * r);
+              weeklyTonnage[wk] += set.weight * r;
             }
-            return b;
-          }, 0);
-        }, 0);
-        return { label: s.k.replace('s', 'S').replace('-d', 'J'), vol: Math.round(vol) };
+          });
+        });
       });
 
-      // Build simple SVG bar chart
-      let chartHtml = '';
-      if (volData.length > 0) {
-        const W = 300, H = 160, pad = { l: 30, r: 8, t: 10, b: 24 };
-        const maxVol = Math.max(...volData.map(v => v.vol), 1);
-        const barW = (W - pad.l - pad.r) / volData.length * 0.75;
-        const barGap = (W - pad.l - pad.r) / volData.length * 0.25;
-        const chartH = H - pad.t - pad.b;
-        chartHtml = `
+      const tonnageData = Object.entries(weeklyTonnage).map(([w, v]) => ({ label: 'S' + w, value: Math.round(v/1000*10)/10 }));
+      let tonnageChart = '';
+      if (tonnageData.length > 0) {
+        const W = 320, H = 160;
+        const pad = { l: 28, r: 8, t: 10, b: 24 };
+        const maxV = Math.max(...tonnageData.map(d => d.value), 0.1);
+        const innerH = H - pad.t - pad.b;
+        const innerW = W - pad.l - pad.r;
+        const barW = innerW / tonnageData.length * 0.7;
+        const barGap = innerW / tonnageData.length * 0.3;
+        tonnageChart = `
           <div class="chart-wrap">
-            <svg class="bar-chart" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">
+            <svg class="chart-svg" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet">
               ${[0, 0.5, 1].map(t => {
-                const y = pad.t + chartH * (1 - t);
-                const v = Math.round(maxVol * t);
+                const y = pad.t + innerH * (1 - t);
+                const v = (maxV * t).toFixed(1);
                 return `
-                  <line x1="${pad.l}" y1="${y}" x2="${W - pad.r}" y2="${y}" stroke="#2A2A30" stroke-dasharray="2,4"/>
-                  <text x="${pad.l - 4}" y="${y + 3}" text-anchor="end" class="bar-axis-lbl">${v}</text>
+                  <line class="grid-line" x1="${pad.l}" y1="${y}" x2="${W - pad.r}" y2="${y}"/>
+                  <text class="axis-lbl" x="${pad.l - 4}" y="${y + 3}" text-anchor="end">${v}</text>
                 `;
               }).join('')}
-              ${volData.map((v, i) => {
-                const x = pad.l + i * (barW + barGap) + barGap / 2;
-                const h = (v.vol / maxVol) * chartH;
-                const y = pad.t + chartH - h;
+              ${tonnageData.map((d, i) => {
+                const x = pad.l + i * (barW + barGap) + barGap/2;
+                const h = maxV > 0 ? (d.value / maxV) * innerH : 0;
+                const y = pad.t + innerH - h;
                 return `
                   <rect class="bar-fill" x="${x}" y="${y}" width="${barW}" height="${h}"/>
-                  <text x="${x + barW / 2}" y="${H - pad.b + 12}" text-anchor="middle" class="bar-axis-lbl">${escapeHtml(v.label)}</text>
+                  <text class="axis-lbl" x="${x + barW/2}" y="${H - pad.b + 12}" text-anchor="middle">${d.label}</text>
                 `;
               }).join('')}
             </svg>
@@ -842,46 +1139,191 @@
         `;
       }
 
+      // RPE distribution
+      const rpeCounts = {};
+      completed.forEach(s => {
+        s.exercises.forEach(e => {
+          e.sets.forEach(set => {
+            if (set.done && set.rpe) {
+              const r = Math.round(set.rpe * 2) / 2;
+              rpeCounts[r] = (rpeCounts[r] || 0) + 1;
+            }
+          });
+        });
+      });
+      const rpeData = Object.entries(rpeCounts).map(([r, c]) => ({ label: r, value: c })).sort((a,b) => parseFloat(a.label) - parseFloat(b.label));
+      let rpeChart = '';
+      if (rpeData.length > 0) {
+        const W = 320, H = 140;
+        const pad = { l: 28, r: 8, t: 10, b: 24 };
+        const maxV = Math.max(...rpeData.map(d => d.value));
+        const innerH = H - pad.t - pad.b;
+        const innerW = W - pad.l - pad.r;
+        const barW = innerW / rpeData.length * 0.7;
+        const barGap = innerW / rpeData.length * 0.3;
+        rpeChart = `
+          <div class="chart-wrap">
+            <svg class="chart-svg" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet">
+              ${[0, 1].map(t => {
+                const y = pad.t + innerH * (1 - t);
+                const v = Math.round(maxV * t);
+                return `
+                  <line class="grid-line" x1="${pad.l}" y1="${y}" x2="${W - pad.r}" y2="${y}"/>
+                  <text class="axis-lbl" x="${pad.l - 4}" y="${y + 3}" text-anchor="end">${v}</text>
+                `;
+              }).join('')}
+              ${rpeData.map((d, i) => {
+                const x = pad.l + i * (barW + barGap) + barGap/2;
+                const h = (d.value / maxV) * innerH;
+                const y = pad.t + innerH - h;
+                return `
+                  <rect class="bar-fill" x="${x}" y="${y}" width="${barW}" height="${h}"/>
+                  <text class="axis-lbl" x="${x + barW/2}" y="${H - pad.b + 12}" text-anchor="middle">${d.label}</text>
+                `;
+              }).join('')}
+            </svg>
+          </div>
+        `;
+      }
+
+      // Compliance per week
+      const compliance = PROGRAM.map(w => {
+        const total = w.days.length;
+        const done = w.days.filter(d => state.progress[sessionKey(w.n, d.n)]?.completed).length;
+        return { week: w.n, done, total, pct: total ? done/total*100 : 0 };
+      });
+      const complianceRows = compliance.map(c => `
+        <div class="compliance-row">
+          <span class="compliance-week">S${c.week}</span>
+          <div class="compliance-bar-wrap"><div class="compliance-bar-fill" style="width:${c.pct}%"></div></div>
+          <span class="compliance-val">${c.done}/${c.total}</span>
+        </div>
+      `).join('');
+
+      // BW chart
+      const bwData = Object.entries(state.bw).sort().map(([d, v]) => ({ date: d, value: v }));
+      let bwBlock = '';
+      if (bwData.length >= 2) {
+        const W = 320, H = 140;
+        const pad = { l: 32, r: 8, t: 10, b: 22 };
+        const innerH = H - pad.t - pad.b;
+        const innerW = W - pad.l - pad.r;
+        const vals = bwData.map(d => d.value);
+        const maxV = Math.max(...vals);
+        const minV = Math.min(...vals);
+        const range = (maxV - minV) || 1;
+        const padR = range * 0.2;
+        const yMax = maxV + padR;
+        const yMin = minV - padR;
+        const yRange = yMax - yMin || 1;
+        const points = bwData.map((d, i) => {
+          const x = pad.l + (bwData.length === 1 ? innerW/2 : (i / (bwData.length - 1)) * innerW);
+          const y = pad.t + innerH - ((d.value - yMin) / yRange) * innerH;
+          return { x, y, value: d.value };
+        });
+        const path = points.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`).join(' ');
+        bwBlock = `
+          <div class="chart-wrap">
+            <svg class="chart-svg" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet">
+              ${[0, 0.5, 1].map(t => {
+                const v = yMin + yRange * t;
+                const y = pad.t + innerH * (1 - t);
+                return `
+                  <line class="grid-line" x1="${pad.l}" y1="${y}" x2="${W - pad.r}" y2="${y}"/>
+                  <text class="axis-lbl" x="${pad.l - 4}" y="${y + 3}" text-anchor="end">${v.toFixed(1)}</text>
+                `;
+              }).join('')}
+              <path d="${path}" stroke="${colors.bench || '#E5C547'}" stroke-width="2" fill="none"/>
+              ${points.map(p => `<circle cx="${p.x}" cy="${p.y}" r="3" fill="#E5C547"/>`).join('')}
+            </svg>
+          </div>
+        `;
+      }
+
+      // Readiness avg per week
+      const readinessMap = { '😴': 1, '🙂': 2, '💪': 3, '🔥': 4 };
+      const readinessByWeek = {};
+      Object.entries(state.readiness).forEach(([dateStr, emoji]) => {
+        // Find which week this date falls in
+        const w = PROGRAM.find(wk => wk.days.some(d => {
+          const ws = wk.days[0].date;
+          const we = wk.days[wk.days.length - 1].date;
+          return dateStr >= ws && dateStr <= we;
+        }));
+        if (w) {
+          if (!readinessByWeek[w.n]) readinessByWeek[w.n] = [];
+          readinessByWeek[w.n].push(readinessMap[emoji]);
+        }
+      });
+      let readinessBlock = '';
+      const readinessEntries = Object.entries(readinessByWeek);
+      if (readinessEntries.length > 0) {
+        readinessBlock = `
+          <div class="chart-wrap">
+            ${readinessEntries.map(([w, vals]) => {
+              const avg = vals.reduce((a, b) => a + b, 0) / vals.length;
+              const emoji = avg < 1.5 ? '😴' : avg < 2.5 ? '🙂' : avg < 3.5 ? '💪' : '🔥';
+              return `
+                <div class="compliance-row">
+                  <span class="compliance-week">S${w}</span>
+                  <div class="compliance-bar-wrap"><div class="compliance-bar-fill" style="width:${(avg/4)*100}%; background: var(--accent);"></div></div>
+                  <span class="compliance-val">${emoji} ${avg.toFixed(1)}</span>
+                </div>
+              `;
+            }).join('')}
+          </div>
+        `;
+      }
+
       return `
         <div class="pad">
-          <h1>STATISTIQUES</h1>
-          <div class="subtitle">Progression du cycle</div>
+          <div class="eyebrow">CYCLE EN COURS</div>
+          <h1>Statistiques</h1>
+          ${summary}
 
-          <div class="stats-grid">
-            <div class="stat-box">
-              <div class="stat-num">${doneCount}</div>
-              <div class="stat-lbl">séances · /${total}</div>
-            </div>
-            <div class="stat-box">
-              <div class="stat-num">${pct}%</div>
-              <div class="stat-lbl">complétion</div>
-            </div>
+          <div class="stat-section">
+            <div class="stat-section-head">e1RM ESTIMÉ — DERNIÈRE VALEUR</div>
+            <div class="e1rm-grid">${e1rmCards}</div>
+            ${multiLineChart ? `<div style="margin-top:12px;">${multiLineChart}</div>` : ''}
           </div>
 
-          ${Object.keys(prs).length > 0 ? `
-            <div class="section-head">RECORDS DU CYCLE</div>
-            ${Object.entries(prs).map(([k, pr]) => `
-              <div class="pr-row">
-                <span class="pr-name">${labels[k]}</span>
-                <span class="pr-val">${pr.weight} kg × ${pr.reps}</span>
-              </div>
-            `).join('')}
+          <div class="stat-section">
+            <div class="stat-section-head">TONNAGE PAR SEMAINE (tonnes)</div>
+            ${tonnageChart || '<div class="empty">Pas encore de données</div>'}
+          </div>
+
+          <div class="stat-section">
+            <div class="stat-section-head">DISTRIBUTION DES RPE</div>
+            ${rpeChart || '<div class="empty">Note tes RPE pour voir la distribution</div>'}
+          </div>
+
+          <div class="stat-section">
+            <div class="stat-section-head">RÉGULARITÉ PAR SEMAINE</div>
+            ${complianceRows}
+          </div>
+
+          ${bwBlock ? `
+          <div class="stat-section">
+            <div class="stat-section-head">POIDS DE CORPS</div>
+            ${bwBlock}
+          </div>
           ` : ''}
 
-          ${volData.length > 0 ? `
-            <div class="section-head">VOLUME PAR SÉANCE (kg)</div>
-            ${chartHtml}
+          ${readinessBlock ? `
+          <div class="stat-section">
+            <div class="stat-section-head">ÉTAT MOYEN PAR SEMAINE</div>
+            ${readinessBlock}
+          </div>
           ` : ''}
 
-          ${doneCount === 0 ? `<div class="empty">Termine ta première séance pour voir tes statistiques.</div>` : ''}
-
-          ${doneCount > 0 ? `
-            <button class="reset-btn" data-action="reset-progress">RÉINITIALISER LA PROGRESSION</button>
-          ` : ''}
+          <button class="reset-btn" data-action="reset-progress">RÉINITIALISER LA PROGRESSION</button>
         </div>
       `;
     }
 
+    // ============================================================
+    // NAV + ROOT RENDER
+    // ============================================================
     function renderNav() {
       if (state.view === 'session') return '';
       return `
@@ -909,60 +1351,80 @@
       else if (state.view === 'program') content = renderProgram();
       else if (state.view === 'session') content = renderSession();
       else if (state.view === 'stats') content = renderStats();
-      app.innerHTML = content + renderNav();
+
+      const animClass = `anim-${nextAnim}`;
+      app.innerHTML = `<div class="${animClass}" id="app-content">${content}</div>` + renderNav();
+      nextAnim = 'fade';
+
+      // Pulse the last toggled set
+      if (lastToggle) {
+        setTimeout(() => {
+          const btn = document.querySelector(`[data-action="toggle-set"][data-ex="${lastToggle.ex}"][data-set="${lastToggle.set}"]`);
+          if (btn) {
+            btn.classList.add('just-checked');
+            setTimeout(() => btn.classList.remove('just-checked'), 320);
+          }
+        }, 0);
+        lastToggle = null;
+      }
     }
 
     // ============================================================
     // ACTIONS
     // ============================================================
+    function setView(newView) {
+      const oldView = state.view;
+      if (oldView !== 'session' && newView === 'session') nextAnim = 'slide-up';
+      else if (oldView === 'session' && newView !== 'session') nextAnim = 'slide-down';
+      else nextAnim = 'fade';
+      state.lastView = oldView;
+      state.view = newView;
+      render();
+    }
 
     function startSession(week, day) {
       const w = PROGRAM.find(x => x.n === week);
       const d = w.days.find(x => x.n === day);
       const k = sessionKey(week, day);
-
       if (state.progress[k]) {
         state.sessionData = state.progress[k];
       } else {
         state.sessionData = {
           completed: false,
-          date: new Date().toISOString(),
+          date: d.date,
           exercises: d.ex.map(e => ({
             key: e.key,
             name: e.name,
-            sets: Array(e.sets).fill(null).map(() => ({
-              done: false,
-              weight: e.weight ?? null,
-              reps: e.reps,
-              rpe: null
-            }))
+            sets: e.overrides
+              ? e.overrides.map(o => ({ done: false, weight: o.weight, reps: o.reps, rpe: null, label: o.label }))
+              : Array(e.sets).fill(null).map(() => ({
+                  done: false,
+                  weight: e.weight ?? null,
+                  reps: e.reps,
+                  rpe: null
+                }))
           }))
         };
       }
-
       state.activeSession = { week, day };
-      state.view = 'session';
-      render();
+      setView('session');
     }
 
     function endSession() {
       const k = sessionKey(state.activeSession.week, state.activeSession.day);
       state.sessionData.completed = true;
-      state.sessionData.date = new Date().toISOString();
+      state.sessionData.endTime = new Date().toISOString();
       state.progress[k] = state.sessionData;
       saveProgress();
       state.activeSession = null;
       state.sessionData = null;
       stopTimer();
-      state.view = 'today';
-      render();
+      setView('today');
     }
 
     function backToToday() {
-      // Save partial progress
       if (state.sessionData && state.activeSession) {
         const k = sessionKey(state.activeSession.week, state.activeSession.day);
-        // Only save if at least one set checked
         const hasProgress = state.sessionData.exercises.some(e => e.sets.some(s => s.done));
         if (hasProgress) {
           state.progress[k] = state.sessionData;
@@ -972,22 +1434,19 @@
       state.activeSession = null;
       state.sessionData = null;
       stopTimer();
-      state.view = 'today';
-      render();
+      setView('today');
     }
 
     function toggleSet(exIdx, setIdx, restSec, exName) {
       const set = state.sessionData.exercises[exIdx].sets[setIdx];
       set.done = !set.done;
-
-      // Save partial progress
       const k = sessionKey(state.activeSession.week, state.activeSession.day);
       state.progress[k] = state.sessionData;
       saveProgress();
-
-      // Start timer if just completed
-      if (set.done && restSec > 0) {
-        startTimer(restSec, exName);
+      if (set.done) {
+        lastToggle = { ex: exIdx, set: setIdx };
+        if (navigator.vibrate) navigator.vibrate(15);
+        if (restSec > 0) startTimer(restSec, exName);
       }
       render();
     }
@@ -999,7 +1458,6 @@
       } else {
         set[field] = value;
       }
-      // Save without re-render
       const k = sessionKey(state.activeSession.week, state.activeSession.day);
       state.progress[k] = state.sessionData;
       saveProgress();
@@ -1017,8 +1475,8 @@
           if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
           render();
         } else {
-          const tEl = document.getElementById('timer-display');
-          if (tEl) tEl.textContent = formatTime(timer.secLeft);
+          const el = document.getElementById('timer-display');
+          if (el) el.textContent = formatTime(timer.secLeft);
         }
       }, 1000);
     }
@@ -1031,83 +1489,72 @@
     }
 
     function resetProgress() {
-      if (confirm('Effacer toute la progression ? Cette action est irréversible.')) {
+      if (confirm('Effacer toute la progression du cycle (séances, poids de corps, état) ?')) {
         state.progress = {};
-        saveProgress();
+        state.bw = {};
+        state.readiness = {};
+        saveProgress(); saveBw(); saveReadiness();
+        setView('today');
+      }
+    }
+
+    function editBw() {
+      const current = getTodayBw();
+      const v = prompt('Poids de corps aujourd\'hui (kg) :', current !== null ? current : '');
+      if (v === null || v === '') return;
+      const num = parseFloat(v.replace(',', '.'));
+      if (!isNaN(num) && num > 0 && num < 300) {
+        state.bw[todayKey()] = num;
+        saveBw();
         render();
       }
+    }
+
+    function setReadiness(emoji) {
+      const tk = todayKey();
+      if (state.readiness[tk] === emoji) {
+        delete state.readiness[tk];
+      } else {
+        state.readiness[tk] = emoji;
+      }
+      saveReadiness();
+      if (navigator.vibrate) navigator.vibrate(10);
+      render();
     }
 
     // ============================================================
     // EVENT DELEGATION
     // ============================================================
-
     document.addEventListener('click', (e) => {
       const btn = e.target.closest('[data-action]');
       if (!btn) return;
-      const action = btn.dataset.action;
+      const a = btn.dataset.action;
 
-      if (action === 'nav') {
-        state.view = btn.dataset.view;
-        render();
-      } else if (action === 'start-session') {
-        startSession(parseInt(btn.dataset.week), parseInt(btn.dataset.day));
-      } else if (action === 'open-week') {
-        state.openWeek = parseInt(btn.dataset.week);
-        render();
-      } else if (action === 'back-to-today') {
-        backToToday();
-      } else if (action === 'toggle-set') {
-        toggleSet(
-          parseInt(btn.dataset.ex),
-          parseInt(btn.dataset.set),
-          parseInt(btn.dataset.rest),
-          btn.dataset.exname
-        );
-      } else if (action === 'end-session') {
-        endSession();
-      } else if (action === 'skip-timer') {
-        stopTimer();
-        render();
-      } else if (action === 'reset-progress') {
-        resetProgress();
-      } else if (action === 'sync-steps') {
-        window.location.href = 'shortcuts://run-shortcut?name=PLTrackerSteps';
-      } else if (action === 'edit-steps') {
-        const current = getTodaySteps();
-        const input = prompt('Nombre de pas aujourd\'hui :', current !== null ? current : '');
-        if (input !== null && input !== '') {
-          const n = parseInt(input, 10);
-          if (!isNaN(n) && n >= 0) {
-            setTodaySteps(n);
-            render();
-          }
-        }
-      }
+      if (a === 'nav') setView(btn.dataset.view);
+      else if (a === 'start-session') startSession(+btn.dataset.week, +btn.dataset.day);
+      else if (a === 'open-week') { state.openWeek = +btn.dataset.week; render(); }
+      else if (a === 'back-to-today') backToToday();
+      else if (a === 'toggle-set') toggleSet(+btn.dataset.ex, +btn.dataset.set, +btn.dataset.rest, btn.dataset.exname);
+      else if (a === 'end-session') endSession();
+      else if (a === 'skip-timer') { stopTimer(); render(); }
+      else if (a === 'reset-progress') resetProgress();
+      else if (a === 'edit-bw') editBw();
+      else if (a === 'set-readiness') setReadiness(btn.dataset.emoji);
     });
 
     document.addEventListener('input', (e) => {
       const inp = e.target;
       if (inp.dataset.field) {
-        updateSet(
-          parseInt(inp.dataset.ex),
-          parseInt(inp.dataset.set),
-          inp.dataset.field,
-          inp.value
-        );
+        updateSet(+inp.dataset.ex, +inp.dataset.set, inp.dataset.field, inp.value);
       }
     });
 
     // ============================================================
     // INIT
     // ============================================================
-
-    loadProgress();
-    loadSteps();
-    handleUrlParams();
+    loadAll();
     render();
 
-    // Service worker
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
         navigator.serviceWorker.register('/sw.js').catch(() => {});
