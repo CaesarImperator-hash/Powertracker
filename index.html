@@ -169,7 +169,75 @@
     .empty { text-align: center; color: var(--text-3); font-size: 12px; font-style: italic; padding: 40px 0; }
     .reset-btn { color: var(--text-2); border: 1px solid var(--border-1); padding: 12px 16px; font-size: 11px; letter-spacing: 1.5px; margin-top: 32px; width: 100%; font-weight: 600; }
 
-    /* ===== EDITOR MOBILE (sync vers PC) ===== */
+    /* ===== EDITOR MOBILE INTÉGRÉ (v7) ===== */
+    .med-header { display: flex; align-items: baseline; gap: 8px; margin-top: 8px; margin-bottom: 4px; }
+    .med-title { flex: 1; font-size: 24px; font-weight: 800; color: var(--text-1); font-family: Impact, sans-serif; text-transform: uppercase; letter-spacing: -0.5px; line-height: 1.1; }
+    .med-title-btn { color: var(--text-2); padding: 6px 10px; font-size: 14px; }
+    .med-title-btn:active { color: var(--accent); }
+
+    .med-week-tabs { display: grid; gap: 4px; margin-top: 20px; margin-bottom: 16px; }
+    .med-week-tab { padding: 12px 4px; background: transparent; color: var(--text-2); border: 1px solid var(--border-1); font-size: 12px; font-weight: 800; letter-spacing: 0.5px; }
+    .med-week-tab.active { background: var(--accent); color: var(--text-1); border-color: var(--accent); }
+    .med-week-tab-add { color: var(--accent); border-color: var(--border-2); border-style: dashed; font-size: 16px; }
+
+    .med-week-info { margin-bottom: 16px; }
+    .med-week-name-row { display: flex; align-items: baseline; gap: 8px; margin-bottom: 12px; }
+    .med-week-badge { font-size: 11px; letter-spacing: 2px; color: var(--text-1); font-weight: 700; }
+    .med-week-meta { font-size: 10px; color: var(--text-3); margin-top: 2px; letter-spacing: 1px; font-weight: 600; }
+    .med-week-actions { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 4px; }
+    .med-week-action-btn { padding: 10px 4px; background: var(--bg-2); color: var(--text-2); border: 1px solid var(--border-1); font-size: 10px; letter-spacing: 0.5px; font-weight: 700; }
+    .med-week-action-btn.danger { color: var(--accent); }
+    .med-week-action-btn:active { background: var(--bg-3); }
+
+    .med-day { background: var(--bg-2); margin-bottom: 10px; border-left: 3px solid var(--border-1); }
+    .med-day-head { display: flex; align-items: center; padding: 12px 14px; border-bottom: 1px solid var(--border-1); gap: 6px; }
+    .med-day-info { flex: 1; min-width: 0; }
+    .med-day-label { font-size: 10px; letter-spacing: 1.5px; color: var(--text-2); font-weight: 700; }
+    .med-day-name { font-size: 15px; font-weight: 700; color: var(--text-1); margin-top: 3px; }
+    .med-day-actions { display: flex; gap: 0; flex-shrink: 0; }
+    .med-day-body { padding: 8px; }
+
+    .med-ex { background: var(--bg-3); padding: 10px 12px; margin-bottom: 6px; border-left: 3px solid var(--border-2); }
+    .med-ex.main-mark { border-left-color: var(--accent); }
+    .med-ex-line-1 { display: flex; align-items: center; gap: 4px; }
+    .med-ex-marker { padding: 6px 8px; font-size: 12px; color: var(--text-3); background: transparent; border: none; }
+    .med-ex-marker.main { color: var(--accent); }
+    .med-ex-name { flex: 1; font-size: 13px; font-weight: 600; color: var(--text-1); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+    .med-ex-actions { display: flex; gap: 0; flex-shrink: 0; }
+    .med-ex-line-2 { display: flex; align-items: center; gap: 4px; margin-top: 8px; padding-left: 30px; flex-wrap: wrap; }
+    .med-inline-input {
+      background: var(--bg-1); border: 1px solid var(--border-1); color: var(--accent);
+      padding: 8px 4px; font-size: 14px; font-family: ui-monospace, monospace;
+      text-align: center; font-weight: 700; height: 38px;
+    }
+    .med-inline-input:focus { border-color: var(--accent); outline: none; background: var(--bg-2); }
+    .med-inline-input.i-sets { width: 46px; }
+    .med-inline-input.i-reps { width: 56px; }
+    .med-inline-input.i-weight { width: 72px; }
+    .med-inline-input::-webkit-outer-spin-button, .med-inline-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+    .med-inline-sep { color: var(--text-3); font-size: 13px; font-family: ui-monospace, monospace; margin: 0 2px; }
+    .med-inline-unit { font-size: 11px; color: var(--text-2); font-weight: 600; margin-left: 2px; }
+    .med-ex-extras { font-size: 10px; color: var(--text-2); margin-top: 6px; padding-left: 30px; letter-spacing: 0.3px; font-family: ui-monospace, monospace; }
+    .med-ex-note { font-size: 11px; color: var(--text-2); font-style: italic; margin-top: 6px; padding-left: 30px; }
+
+    .med-icon-btn { color: var(--text-2); padding: 10px 10px; font-size: 14px; min-width: 40px; background: transparent; border: none; }
+    .med-icon-btn.danger { color: var(--accent); }
+    .med-icon-btn:active { background: var(--bg-1); }
+
+    .med-add-btn { display: block; width: 100%; padding: 10px; background: transparent; border: 1px dashed var(--border-2); color: var(--text-2); font-size: 11px; letter-spacing: 1px; margin-top: 4px; font-weight: 600; }
+    .med-add-btn:active { background: var(--bg-3); }
+    .med-add-btn-lg { padding: 14px; margin-top: 8px; font-size: 12px; letter-spacing: 1.5px; }
+
+    .med-admin { margin-top: 40px; padding-top: 20px; border-top: 1px solid var(--border-1); }
+    .med-admin-title { font-size: 10px; letter-spacing: 2px; color: var(--text-2); font-weight: 700; margin-bottom: 12px; }
+    .med-admin-btns { display: grid; gap: 6px; }
+    .med-admin-btn { padding: 14px 12px; background: var(--bg-2); color: var(--text-1); border: 1px solid var(--border-1); font-size: 11px; letter-spacing: 1px; font-weight: 700; text-align: center; }
+    .med-admin-btn.danger { color: var(--accent); }
+    .med-admin-btn:active { background: var(--bg-3); }
+    .med-admin-note { font-size: 11px; color: var(--text-3); margin-top: 12px; line-height: 1.5; }
+    .med-admin-note b { color: var(--accent); font-weight: 700; word-break: break-all; }
+
+    /* ===== EDITOR MOBILE (ancien sync PC — obsolète mais gardé pour compat) ===== */
     .pc-notice { background: var(--bg-2); border-left: 3px solid var(--accent); padding: 18px 16px; margin-top: 24px; }
     .pc-notice-title { font-size: 16px; font-weight: 800; color: var(--text-1); font-family: Impact, sans-serif; text-transform: uppercase; letter-spacing: -0.3px; margin-bottom: 8px; }
     .pc-notice-body { font-size: 13px; color: var(--text-2); line-height: 1.5; margin-bottom: 14px; }
@@ -874,40 +942,113 @@
     // RENDER: EDITOR
     // ============================================================
     function renderEditor() {
-      const origin = window.location.origin;
-      const editorUrl = origin + '/editor.html';
-      const totalDays = programWeeks().reduce((a, w) => a + w.days.length, 0);
-      const libCount = Object.keys(state.library).length;
+      const weeks = programWeeks();
+      if (weeks.length && (!state.openWeek || !weeks.find(w => w.id === state.openWeek))) {
+        state.openWeek = weeks[0].id;
+      }
+      const current = weeks.find(w => w.id === state.openWeek);
+      const cols = Math.min(weeks.length + 1, 6);
+
       return `<div class="pad">
-        <div class="eyebrow">CONFIGURATION</div>
-        <h1>Éditeur</h1>
-        <div class="pc-notice">
-          <div class="pc-notice-title">L'éditeur est sur PC</div>
-          <div class="pc-notice-body">Modifier le programme est bien plus pratique sur ordinateur avec un grand écran et une souris. Voici l'URL à ouvrir :</div>
-          <div class="pc-notice-url" data-action="copy-editor-url" data-url="${esc(editorUrl)}">
-            <div class="pc-notice-url-value">${esc(editorUrl)}</div>
-            <div class="pc-notice-url-hint">tape pour copier</div>
+        <div class="eyebrow">ÉDITEUR · sauvegarde auto</div>
+        <div class="med-header">
+          <div class="med-title">${esc(state.program.name || 'Programme sans nom')}</div>
+          <button class="med-title-btn" data-action="rename-program" title="Renommer">✎</button>
+        </div>
+
+        ${weeks.length === 0 ? `
+          <div class="empty" style="margin-top:32px;padding:40px 20px;">Aucune semaine.</div>
+          <button class="cta" data-action="add-week">+ AJOUTER UNE SEMAINE</button>
+        ` : `
+          <div class="med-week-tabs" style="grid-template-columns: repeat(${cols}, 1fr);">
+            ${weeks.map((w, i) => `<button class="med-week-tab ${w.id === state.openWeek ? 'active' : ''}" data-action="open-week" data-week="${w.id}">S${i+1}</button>`).join('')}
+            <button class="med-week-tab med-week-tab-add" data-action="add-week" title="Ajouter une semaine">+</button>
           </div>
-          <ol class="pc-notice-steps">
-            <li>Ouvre cette URL sur ton PC</li>
-            <li>Édite ton programme</li>
-            <li>Clique <b>Envoyer au téléphone</b> puis <b>Copier</b></li>
-            <li>Envoie-toi le texte (Notes iCloud, mail, message)</li>
-            <li>Reviens ici et touche <b>IMPORTER</b> ci-dessous</li>
-          </ol>
-        </div>
+          ${current ? renderMobEdWeek(current) : ''}
+        `}
 
-        <div class="sync-actions">
-          <button class="cta" data-action="import-program">IMPORTER UN PROGRAMME</button>
-          <button class="editor-tool-btn" data-action="export-program" style="width:100%;padding:14px;margin-top:8px;">EXPORTER (SAUVEGARDE)</button>
-          <button class="editor-tool-btn" data-action="reset-program" style="width:100%;padding:14px;margin-top:8px;">RESTAURER LE PEAK BLOCK PAR DÉFAUT</button>
+        <div class="med-admin">
+          <div class="med-admin-title">OPTIONS</div>
+          <div class="med-admin-btns">
+            <button class="med-admin-btn" data-action="open-library-edit">GÉRER LA BIBLIOTHÈQUE</button>
+            <button class="med-admin-btn" data-action="import-program">IMPORTER UN PROGRAMME</button>
+            <button class="med-admin-btn" data-action="export-program">EXPORTER (SAUVEGARDE)</button>
+            <button class="med-admin-btn danger" data-action="reset-program">RESTAURER LE PEAK BLOCK PAR DÉFAUT</button>
+          </div>
+          <div class="med-admin-note">
+            Éditeur bureau aussi disponible sur <b data-action="copy-editor-url" data-url="${esc(window.location.origin + '/editor.html')}">${esc(window.location.origin + '/editor.html')}</b> (tap pour copier).
+          </div>
         </div>
+      </div>`;
+    }
 
-        <div class="editor-current-block">
-          <div class="section-label">PROGRAMME ACTUEL</div>
-          <div class="editor-current-name">${esc(state.program.name || 'Sans nom')}</div>
-          <div class="editor-current-meta">${programWeeks().length} semaines · ${totalDays} séances · ${libCount} exercices en bibliothèque</div>
+    function renderMobEdWeek(w) {
+      return `
+        <div class="med-week-info">
+          <div class="med-week-name-row">
+            <div>
+              <div class="med-week-badge">${esc(w.name).toUpperCase()}</div>
+              <div class="med-week-meta">${w.days.length} séance${w.days.length > 1 ? 's' : ''}</div>
+            </div>
+          </div>
+          <div class="med-week-actions">
+            <button class="med-week-action-btn" data-action="rename-week" data-week="${w.id}">✎ Renommer</button>
+            <button class="med-week-action-btn" data-action="duplicate-week" data-week="${w.id}">⧉ Dupliquer</button>
+            <button class="med-week-action-btn danger" data-action="delete-week" data-week="${w.id}">× Supprimer</button>
+          </div>
         </div>
+        ${w.days.map(d => renderMobEdDay(w.id, d)).join('')}
+        <button class="med-add-btn med-add-btn-lg" data-action="add-day" data-week="${w.id}">+ AJOUTER UN JOUR</button>
+      `;
+    }
+
+    function renderMobEdDay(wId, d) {
+      return `<div class="med-day">
+        <div class="med-day-head">
+          <div class="med-day-info">
+            <div class="med-day-label">${esc(d.label)}${d.date ? ' · ' + fmtDateShort(d.date) : ''}${d.isTest ? ' · TEST' : ''}</div>
+            <div class="med-day-name">${esc(d.name)}</div>
+          </div>
+          <div class="med-day-actions">
+            <button class="med-icon-btn" data-action="edit-day" data-week="${wId}" data-day="${d.id}" title="Modifier">✎</button>
+            <button class="med-icon-btn" data-action="duplicate-day" data-week="${wId}" data-day="${d.id}" title="Dupliquer">⧉</button>
+            <button class="med-icon-btn danger" data-action="delete-day" data-week="${wId}" data-day="${d.id}" title="Supprimer">×</button>
+          </div>
+        </div>
+        <div class="med-day-body">
+          ${(d.ex || []).map((ex, i) => renderMobEdEx(wId, d.id, ex, i)).join('')}
+          <button class="med-add-btn" data-action="add-exercise-to-day" data-week="${wId}" data-day="${d.id}">+ AJOUTER UN EXERCICE</button>
+        </div>
+      </div>`;
+    }
+
+    function renderMobEdEx(wId, dId, ex, i) {
+      const def = getExDef(ex);
+      const canInline = !ex.isTest;
+      const extras = [];
+      if (ex.rpe) extras.push(`RPE ${ex.rpe}`);
+      if (ex.rest) extras.push(`repos ${ex.rest}s`);
+      return `<div class="med-ex ${ex.main ? 'main-mark' : ''}">
+        <div class="med-ex-line-1">
+          <button class="med-ex-marker ${ex.main ? 'main' : ''}" data-action="edit-exercise" data-week="${wId}" data-day="${dId}" data-ex-idx="${i}" title="${ex.main ? 'Mouvement principal' : 'Accessoire'} · tap pour modifier">${ex.main ? '●' : '○'}</button>
+          <span class="med-ex-name">${esc(def.name)}</span>
+          <div class="med-ex-actions">
+            ${canInline ? `<button class="med-icon-btn" data-action="edit-exercise" data-week="${wId}" data-day="${dId}" data-ex-idx="${i}" title="RPE, repos, note">✎</button>` : ''}
+            <button class="med-icon-btn danger" data-action="delete-exercise" data-week="${wId}" data-day="${dId}" data-ex-idx="${i}" title="Supprimer">×</button>
+          </div>
+        </div>
+        ${canInline ? `
+          <div class="med-ex-line-2">
+            <input class="med-inline-input i-sets" type="number" inputmode="numeric" min="1" value="${ex.sets ?? ''}" data-inline="sets" data-week="${wId}" data-day="${dId}" data-ex-idx="${i}">
+            <span class="med-inline-sep">×</span>
+            <input class="med-inline-input i-reps" type="text" inputmode="numeric" value="${esc(ex.reps ?? '')}" data-inline="reps" data-week="${wId}" data-day="${dId}" data-ex-idx="${i}">
+            <span class="med-inline-sep">@</span>
+            <input class="med-inline-input i-weight" type="number" step="2.5" inputmode="decimal" value="${ex.weight ?? ''}" data-inline="weight" data-week="${wId}" data-day="${dId}" data-ex-idx="${i}" placeholder="—">
+            <span class="med-inline-unit">kg</span>
+          </div>
+        ` : `<div class="med-ex-extras">${ex.overrides ? ex.overrides.length : ex.sets} étapes · non modifiable ici</div>`}
+        ${extras.length ? `<div class="med-ex-extras">${esc(extras.join(' · '))}</div>` : ''}
+        ${ex.note ? `<div class="med-ex-note">${esc(ex.note)}</div>` : ''}
       </div>`;
     }
 
@@ -1096,17 +1237,14 @@
       if (m.type === 'edit-exercise') {
         const ex = m.data.exercise;
         const def = getExDef(ex);
-        return modalWrap('Modifier l\'exercice', esc(def.name), `
-          <div class="modal-field"><label class="modal-label">SÉRIES</label><input class="modal-input" id="m-sets" type="number" inputmode="numeric" value="${ex.sets ?? ''}"></div>
-          <div class="modal-field"><label class="modal-label">REPS</label><input class="modal-input" id="m-reps" type="text" inputmode="numeric" value="${ex.reps ?? ''}" placeholder="ex. 10 ou 8/jambe"></div>
-          <div class="modal-field"><label class="modal-label">CHARGE (kg)</label><input class="modal-input" id="m-weight" type="number" step="2.5" inputmode="decimal" value="${ex.weight ?? ''}" placeholder="optionnel"></div>
+        return modalWrap(def.name, 'Séries, reps et charge se modifient sur la ligne. Ici : RPE, repos, note, mouvement principal.', `
           <div class="modal-field"><label class="modal-label">RPE</label><input class="modal-input" id="m-rpe" type="number" step="0.5" min="1" max="10" inputmode="decimal" value="${ex.rpe ?? ''}" placeholder="optionnel"></div>
           <div class="modal-field"><label class="modal-label">REPOS (secondes)</label><input class="modal-input" id="m-rest" type="number" inputmode="numeric" value="${ex.rest ?? 60}"></div>
-          <div class="modal-field"><label class="modal-label">NOTE</label><textarea class="modal-input textarea text-normal" id="m-note" placeholder="optionnel">${esc(ex.note || '')}</textarea></div>
+          <div class="modal-field"><label class="modal-label">NOTE</label><textarea class="modal-input textarea text-normal" id="m-note" placeholder="ex. ~32,5 kg/main, semi-pronation">${esc(ex.note || '')}</textarea></div>
           <div class="modal-check-row" data-action="toggle-main"><div class="modal-check ${ex.main ? 'checked' : ''}" id="m-main-check">${ex.main ? '✓' : ''}</div><span class="modal-check-lbl">Mouvement principal</span></div>
         `, [
           { label: 'Annuler', cls: 'cancel', action: 'close-modal' },
-          { label: 'OK', cls: 'confirm', action: 'save-exercise' },
+          { label: 'Enregistrer', cls: 'confirm', action: 'save-exercise' },
         ]);
       }
       if (m.type === 'edit-day') {
@@ -1352,6 +1490,7 @@
       const w = { id: uid('w'), name: `Semaine ${num}`, days: [] };
       state.program.weeks.push(w);
       state.editorExpandedWeeks[w.id] = true;
+      state.openWeek = w.id;
       saveProgram(); render();
     }
     function renameWeek(weekId) {
@@ -1361,8 +1500,21 @@
       if (v && v.trim()) { w.name = v.trim(); saveProgram(); render(); }
     }
     function deleteWeek(weekId) {
-      if (!confirm('Supprimer cette semaine et toutes ses séances ?')) return;
-      state.program.weeks = programWeeks().filter(w => w.id !== weekId);
+      const w = findWeekById(weekId); if (!w) return;
+      if (!confirm(`Supprimer la semaine "${w.name}" et ses ${w.days.length} séance${w.days.length > 1 ? 's' : ''} ?`)) return;
+      state.program.weeks = programWeeks().filter(x => x.id !== weekId);
+      if (state.openWeek === weekId) state.openWeek = programWeeks()[0]?.id || null;
+      saveProgram(); render();
+    }
+    function duplicateWeek(weekId) {
+      const w = findWeekById(weekId); if (!w) return;
+      const copy = JSON.parse(JSON.stringify(w));
+      copy.id = uid('w');
+      copy.name = w.name + ' (copie)';
+      copy.days.forEach(d => { d.id = uid('d'); });
+      const idx = programWeeks().indexOf(w);
+      state.program.weeks.splice(idx + 1, 0, copy);
+      state.openWeek = copy.id;
       saveProgram(); render();
     }
     function toggleWeekExpanded(weekId) {
@@ -1375,6 +1527,16 @@
       const d = { id: uid('d'), label: 'Jour', name: 'Nouvelle séance', date: '', ex: [] };
       w.days.push(d);
       state.modal = { type: 'edit-day', data: { weekId, day: d, isNew: true } };
+      saveProgram(); render();
+    }
+    function duplicateDay(weekId, dayId) {
+      const w = findWeekById(weekId); const d = findDayById(weekId, dayId);
+      if (!w || !d) return;
+      const copy = JSON.parse(JSON.stringify(d));
+      copy.id = uid('d');
+      copy.name = d.name + ' (copie)';
+      const idx = w.days.indexOf(d);
+      w.days.splice(idx + 1, 0, copy);
       saveProgram(); render();
     }
     function editDay(weekId, dayId) {
@@ -1392,9 +1554,10 @@
       saveProgram(); render();
     }
     function deleteDay(weekId, dayId) {
-      if (!confirm('Supprimer cette séance ?')) return;
+      const d = findDayById(weekId, dayId); if (!d) return;
+      if (!confirm(`Supprimer la séance "${d.name}" ?`)) return;
       const w = findWeekById(weekId);
-      if (w) { w.days = w.days.filter(d => d.id !== dayId); saveProgram(); render(); }
+      if (w) { w.days = w.days.filter(x => x.id !== dayId); saveProgram(); render(); }
     }
     function editExercise(weekId, dayId, exIdx) {
       const d = findDayById(weekId, dayId);
@@ -1408,18 +1571,12 @@
       const d = findDayById(weekId, dayId);
       if (!d) return;
       const target = d.ex[exIdx];
-      const sets = parseInt(document.getElementById('m-sets').value);
-      const reps = document.getElementById('m-reps').value.trim();
-      const wV = document.getElementById('m-weight').value;
       const rV = document.getElementById('m-rpe').value;
       const restV = parseInt(document.getElementById('m-rest').value);
       const noteV = document.getElementById('m-note').value.trim();
-      target.sets = isNaN(sets) ? 1 : sets;
-      target.reps = reps;
-      target.weight = wV ? parseFloat(wV) : null;
       target.rpe = rV ? parseFloat(rV) : null;
       target.rest = isNaN(restV) ? 60 : restV;
-      target.note = noteV || undefined;
+      if (noteV) target.note = noteV; else delete target.note;
       target.main = state.modal.data.exercise.main;
       state.modal = null;
       saveProgram(); render();
@@ -1429,8 +1586,11 @@
       render();
     }
     function deleteExerciseFromDay(weekId, dayId, exIdx) {
-      const d = findDayById(weekId, dayId);
-      if (d) { d.ex.splice(exIdx, 1); saveProgram(); render(); }
+      const d = findDayById(weekId, dayId); if (!d) return;
+      const ex = d.ex[exIdx]; if (!ex) return;
+      const def = getExDef(ex);
+      if (!confirm(`Retirer "${def.name}" de cette séance ?`)) return;
+      d.ex.splice(exIdx, 1); saveProgram(); render();
     }
     function openExercisePicker(weekId, dayId) {
       state.modal = { type: 'pick-exercise', data: { weekId, dayId } };
@@ -1645,9 +1805,12 @@
       else if (a === 'add-week') addWeek();
       else if (a === 'rename-week') renameWeek(w);
       else if (a === 'delete-week') deleteWeek(w);
+      else if (a === 'duplicate-week') duplicateWeek(w);
       else if (a === 'toggle-week') toggleWeekExpanded(w);
+      else if (a === 'open-week') { state.openWeek = w; render(); }
       else if (a === 'add-day') addDay(w);
       else if (a === 'edit-day') editDay(w, d);
+      else if (a === 'duplicate-day') duplicateDay(w, d);
       else if (a === 'save-day') saveDay();
       else if (a === 'delete-day') deleteDay(w, d);
       else if (a === 'edit-exercise') editExercise(w, d, +ei);
@@ -1671,8 +1834,8 @@
         const url = btn.dataset.url;
         if (navigator.clipboard) {
           navigator.clipboard.writeText(url).then(() => {
-            const hint = btn.querySelector('.pc-notice-url-hint');
-            if (hint) { const old = hint.textContent; hint.textContent = '✓ copié'; setTimeout(() => hint.textContent = old, 1500); }
+            const old = btn.textContent; btn.textContent = '✓ copié !';
+            setTimeout(() => btn.textContent = old, 1500);
           }).catch(() => { alert('URL : ' + url); });
         } else { alert('URL : ' + url); }
       }
@@ -1680,6 +1843,20 @@
 
     document.addEventListener('change', (e) => {
       if (e.target.matches('[data-action="filter-library"]')) filterLibrary(e.target.value);
+      // Inline edit on editor view: sets, reps, weight
+      const inp = e.target;
+      if (inp.dataset && inp.dataset.inline && state.view === 'editor') {
+        const w = inp.dataset.week, d = inp.dataset.day, i = parseInt(inp.dataset.exIdx);
+        const day = findDayById(w, d);
+        if (!day || !day.ex[i]) return;
+        const ex = day.ex[i];
+        const f = inp.dataset.inline;
+        if (f === 'sets') { const n = parseInt(inp.value); ex.sets = (isNaN(n) || n < 1) ? 1 : n; }
+        else if (f === 'reps') { ex.reps = inp.value.trim(); }
+        else if (f === 'weight') { ex.weight = inp.value === '' ? null : parseFloat(inp.value); }
+        saveProgram();
+        // no re-render to preserve focus
+      }
     });
 
     document.addEventListener('input', (e) => {
