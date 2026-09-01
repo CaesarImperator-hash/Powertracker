@@ -1,0 +1,1126 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PL Tracker · Éditeur</title>
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
+  <style>
+    :root {
+      --bg-1: #0A0A0C; --bg-2: #131316; --bg-3: #1C1C21; --bg-4: #24242A;
+      --border-1: #25252B; --border-2: #3A3A42; --border-3: #4A4A54;
+      --accent: #D4382F; --accent-dim: #A02C26; --accent-glow: rgba(212, 56, 47, 0.18);
+      --text-1: #F2EBDC; --text-2: #8B8680; --text-3: #5A5550;
+      --success: #6FA85B; --warning: #E8A33D;
+    }
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0; padding: 0; background: var(--bg-1); color: var(--text-1);
+      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Inter', system-ui, sans-serif;
+      font-size: 14px; height: 100vh; overflow: hidden;
+    }
+    button { cursor: pointer; font-family: inherit; background: transparent; border: none; padding: 0; color: inherit; transition: all 120ms; }
+    input, select, textarea { font-family: inherit; -webkit-appearance: none; appearance: none; }
+    input:focus, select:focus, textarea:focus { outline: 1px solid var(--accent); outline-offset: -1px; }
+
+    /* ============ HEADER ============ */
+    .hdr {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 14px 24px; background: var(--bg-2); border-bottom: 1px solid var(--border-1);
+      height: 64px;
+    }
+    .hdr-left { display: flex; flex-direction: column; gap: 2px; }
+    .hdr-eyebrow { font-size: 10px; letter-spacing: 2px; color: var(--text-2); font-weight: 700; }
+    .hdr-name { font-size: 18px; font-weight: 700; color: var(--text-1); cursor: pointer; display: flex; align-items: center; gap: 8px; }
+    .hdr-name:hover { color: var(--accent); }
+    .hdr-name .pen { font-size: 12px; color: var(--text-3); }
+    .hdr-name:hover .pen { color: var(--accent); }
+    .hdr-tools { display: flex; gap: 8px; align-items: center; }
+    .tool-btn {
+      background: var(--bg-3); border: 1px solid var(--border-1); color: var(--text-1);
+      padding: 8px 12px; font-size: 11px; letter-spacing: 1px; font-weight: 700;
+    }
+    .tool-btn:hover { border-color: var(--border-2); background: var(--bg-4); }
+    .tool-btn.primary { background: var(--accent); border-color: var(--accent); }
+    .tool-btn.primary:hover { background: var(--accent-dim); border-color: var(--accent-dim); }
+    .save-ind {
+      font-size: 10px; letter-spacing: 1.5px; color: var(--success); font-weight: 700;
+      padding: 8px 12px; opacity: 0; transition: opacity 300ms;
+    }
+    .save-ind.visible { opacity: 1; }
+
+    /* ============ SPLIT LAYOUT ============ */
+    .split {
+      display: flex; height: calc(100vh - 64px); overflow: hidden;
+    }
+    .panel { display: flex; flex-direction: column; overflow: hidden; }
+    .panel-program { flex: 1.5; border-right: 1px solid var(--border-1); }
+    .panel-library { flex: 1; min-width: 340px; max-width: 460px; }
+    .panel-head {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 14px 20px; background: var(--bg-2); border-bottom: 1px solid var(--border-1);
+    }
+    .panel-title { font-size: 11px; letter-spacing: 2px; color: var(--text-2); font-weight: 700; }
+    .panel-body { flex: 1; overflow-y: auto; padding: 16px 20px 60px; }
+
+    /* ============ WEEKS ============ */
+    .week { margin-bottom: 10px; background: var(--bg-2); border: 1px solid var(--border-1); }
+    .week-head {
+      display: flex; align-items: center; gap: 10px; padding: 12px 14px;
+      border-bottom: 1px solid var(--border-1); cursor: pointer;
+    }
+    .week-head:hover { background: var(--bg-3); }
+    .chevron { color: var(--text-2); font-size: 10px; width: 12px; }
+    .week-name { flex: 1; font-size: 14px; font-weight: 700; color: var(--text-1); }
+    .week-badge { font-size: 9px; letter-spacing: 1px; color: var(--text-2); background: var(--bg-3); padding: 3px 7px; font-weight: 700; }
+    .row-actions { display: flex; gap: 2px; }
+    .icon-btn {
+      color: var(--text-2); padding: 4px 8px; font-size: 13px; border-radius: 2px;
+    }
+    .icon-btn:hover { background: var(--bg-4); color: var(--text-1); }
+    .icon-btn.danger:hover { color: var(--accent); background: var(--accent-glow); }
+    .week-body { padding: 10px; }
+
+    /* ============ DAYS ============ */
+    .day {
+      background: var(--bg-3); border-left: 3px solid var(--border-2); margin-bottom: 8px;
+      transition: border-color 120ms, background 120ms;
+    }
+    .day.drop-hover { border-left-color: var(--accent); background: var(--accent-glow); }
+    .day-head {
+      display: flex; align-items: center; gap: 10px; padding: 10px 12px;
+      border-bottom: 1px solid var(--border-1);
+    }
+    .day-label { font-size: 10px; letter-spacing: 1px; color: var(--text-2); font-weight: 700; }
+    .day-name { font-size: 13px; font-weight: 700; color: var(--text-1); }
+    .day-name-sep { color: var(--text-3); margin: 0 6px; }
+    .day-test { font-size: 9px; letter-spacing: 1px; color: var(--accent); background: var(--accent-glow); padding: 2px 5px; font-weight: 700; margin-left: 6px; }
+    .day-head-name { flex: 1; display: flex; align-items: baseline; }
+    .day-body { padding: 6px 8px 8px; }
+
+    /* ============ EXERCISES ============ */
+    .ex-row {
+      display: flex; align-items: center; gap: 10px; padding: 8px 10px;
+      background: var(--bg-2); margin-bottom: 3px; border-left: 2px solid var(--border-1);
+      cursor: grab; user-select: none;
+    }
+    .ex-row:active { cursor: grabbing; }
+    .ex-row.main-mark { border-left-color: var(--accent); }
+    .ex-row.dragging { opacity: 0.3; }
+    .grip {
+      color: var(--text-3); font-size: 14px; letter-spacing: -2px; line-height: 1; padding-right: 4px;
+    }
+    .ex-marker { font-size: 8px; color: var(--text-3); }
+    .ex-marker.main { color: var(--accent); }
+    .ex-name { flex: 1; font-size: 12px; color: var(--text-1); font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+    .ex-stats { font-size: 11px; color: var(--accent); font-family: ui-monospace, monospace; margin-right: 8px; }
+    .ex-extra { font-size: 10px; color: var(--text-2); font-family: ui-monospace, monospace; margin-right: 8px; letter-spacing: 0.3px; }
+    .ex-note { font-size: 10px; color: var(--text-2); font-style: italic; margin-right: 8px; max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+    /* Inline editing */
+    .ex-inline-edit { display: flex; align-items: center; gap: 4px; margin-right: 8px; flex-shrink: 0; }
+    .inline-input {
+      background: var(--bg-1); border: 1px solid var(--border-1); color: var(--accent);
+      padding: 3px 5px; font-size: 11px; font-family: ui-monospace, monospace;
+      text-align: center; height: 24px; font-weight: 700;
+    }
+    .inline-input:hover { border-color: var(--border-2); }
+    .inline-input:focus { border-color: var(--accent); outline: none; background: var(--bg-3); }
+    .inline-input.i-sets { width: 36px; }
+    .inline-input.i-reps { width: 52px; }
+    .inline-input.i-weight { width: 62px; }
+    .inline-input::-webkit-outer-spin-button, .inline-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+    .inline-input[type=number] { -moz-appearance: textfield; }
+    .inline-sep { color: var(--text-3); font-size: 11px; font-family: ui-monospace, monospace; }
+    .inline-unit { font-size: 10px; color: var(--text-2); font-weight: 600; }
+    .ex-marker { cursor: pointer; background: transparent; border: none; padding: 2px 4px; }
+    .ex-marker:hover { color: var(--accent) !important; }
+
+    /* ============ ADD BUTTONS ============ */
+    .add-btn {
+      display: block; width: 100%; padding: 8px; background: transparent;
+      border: 1px dashed var(--border-2); color: var(--text-2); font-size: 11px;
+      letter-spacing: 1px; margin-top: 4px; font-weight: 600;
+    }
+    .add-btn:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-glow); }
+    .add-day-btn { padding: 10px; margin-top: 8px; font-size: 11px; }
+    .add-week-btn {
+      display: block; width: 100%; padding: 16px; background: transparent;
+      border: 1px dashed var(--border-2); color: var(--text-2); font-size: 12px;
+      letter-spacing: 1.5px; font-weight: 700;
+    }
+    .add-week-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+    /* ============ LIBRARY ============ */
+    .lib-controls { padding: 10px 16px; background: var(--bg-2); border-bottom: 1px solid var(--border-1); display: flex; gap: 8px; }
+    .lib-search { flex: 1; background: var(--bg-1); border: 1px solid var(--border-1); color: var(--text-1); padding: 8px 10px; font-size: 12px; }
+    .lib-filter { background: var(--bg-1); border: 1px solid var(--border-1); color: var(--text-1); padding: 8px 10px; font-size: 12px; }
+    .lib-item {
+      display: flex; align-items: center; gap: 10px; padding: 9px 12px;
+      background: var(--bg-2); margin-bottom: 3px; border-left: 2px solid var(--border-1);
+      cursor: grab; user-select: none;
+    }
+    .lib-item:hover { background: var(--bg-3); border-left-color: var(--border-2); }
+    .lib-item:active { cursor: grabbing; }
+    .lib-item.dragging { opacity: 0.3; }
+    .lib-name { flex: 1; font-size: 12px; color: var(--text-1); font-weight: 600; }
+    .lib-group {
+      font-size: 9px; letter-spacing: 1px; color: var(--text-2); font-weight: 700;
+      padding: 3px 6px; background: var(--bg-1);
+    }
+    .lib-empty { text-align: center; color: var(--text-3); font-size: 12px; font-style: italic; padding: 40px 0; }
+
+    /* ============ MODAL ============ */
+    .modal-overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.75);
+      display: flex; align-items: center; justify-content: center; z-index: 100;
+      animation: fade 150ms ease-out;
+    }
+    @keyframes fade { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+    .modal {
+      background: var(--bg-2); border: 1px solid var(--border-2); border-top: 3px solid var(--accent);
+      width: 100%; max-width: 560px; max-height: 85vh; overflow-y: auto; padding: 24px;
+      animation: slideUp 200ms cubic-bezier(0.2, 0.8, 0.2, 1);
+    }
+    .modal-title { font-size: 16px; font-weight: 700; color: var(--text-1); margin-bottom: 4px; letter-spacing: -0.3px; }
+    .modal-subtitle { font-size: 12px; color: var(--text-2); margin-bottom: 20px; }
+    .modal-field { margin-bottom: 14px; }
+    .modal-label {
+      display: block; font-size: 10px; letter-spacing: 1.5px; color: var(--text-2);
+      font-weight: 700; margin-bottom: 6px;
+    }
+    .modal-input {
+      width: 100%; background: var(--bg-1); border: 1px solid var(--border-1); color: var(--text-1);
+      padding: 10px 12px; font-size: 14px; font-family: ui-monospace, monospace;
+    }
+    .modal-input.text-normal { font-family: inherit; }
+    .modal-input.textarea { min-height: 80px; resize: vertical; font-family: inherit; }
+    .modal-input.mono-code { font-family: ui-monospace, monospace; font-size: 11px; min-height: 240px; }
+    .modal-field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .modal-check-row { display: flex; align-items: center; gap: 10px; margin: 14px 0; cursor: pointer; user-select: none; }
+    .modal-check {
+      width: 22px; height: 22px; border: 1px solid var(--border-2); display: flex;
+      align-items: center; justify-content: center; font-weight: 700; font-size: 14px;
+    }
+    .modal-check.checked { background: var(--accent); border-color: var(--accent); color: var(--text-1); }
+    .modal-check-lbl { font-size: 13px; color: var(--text-1); }
+    .modal-actions { display: flex; gap: 8px; margin-top: 20px; }
+    .modal-btn { flex: 1; padding: 12px; font-size: 12px; letter-spacing: 1px; font-weight: 700; }
+    .modal-btn.cancel { background: transparent; color: var(--text-2); border: 1px solid var(--border-1); }
+    .modal-btn.cancel:hover { border-color: var(--border-2); color: var(--text-1); }
+    .modal-btn.confirm { background: var(--accent); color: var(--text-1); }
+    .modal-btn.confirm:hover { background: var(--accent-dim); }
+    .modal-btn.danger { background: transparent; color: var(--accent); border: 1px solid var(--accent); }
+    .modal-btn.danger:hover { background: var(--accent-glow); }
+    .modal-instruct { background: var(--bg-1); padding: 12px 14px; margin-top: 14px; font-size: 12px; color: var(--text-2); border-left: 3px solid var(--accent); line-height: 1.6; }
+    .modal-instruct b { color: var(--text-1); }
+
+    .empty-state { text-align: center; color: var(--text-3); font-size: 13px; padding: 60px 20px; font-style: italic; }
+
+    ::-webkit-scrollbar { width: 8px; height: 8px; }
+    ::-webkit-scrollbar-track { background: var(--bg-1); }
+    ::-webkit-scrollbar-thumb { background: var(--border-2); }
+    ::-webkit-scrollbar-thumb:hover { background: var(--border-3); }
+  </style>
+</head>
+<body>
+  <header class="hdr">
+    <div class="hdr-left">
+      <span class="hdr-eyebrow">PL TRACKER · ÉDITEUR</span>
+      <div class="hdr-name" data-action="rename-program" title="Cliquer pour renommer">
+        <span id="prog-name">—</span>
+        <span class="pen">✎</span>
+      </div>
+    </div>
+    <div class="hdr-tools">
+      <span class="save-ind" id="save-ind">✓ SAUVEGARDÉ</span>
+      <button class="tool-btn primary" data-action="send-to-phone" title="Copie le programme pour l'envoyer à ton iPhone">↑ ENVOYER AU TÉLÉPHONE</button>
+      <button class="tool-btn" data-action="import">↓ IMPORT</button>
+      <button class="tool-btn" data-action="library-manager">BIBLIOTHÈQUE</button>
+      <button class="tool-btn" data-action="reset-default" title="Restaurer le peak block par défaut">↻ DÉFAUT</button>
+    </div>
+  </header>
+
+  <main class="split">
+    <section class="panel panel-program">
+      <div class="panel-head">
+        <span class="panel-title">PROGRAMME</span>
+        <button class="tool-btn primary" data-action="add-week">+ SEMAINE</button>
+      </div>
+      <div class="panel-body" id="program-body"></div>
+    </section>
+
+    <section class="panel panel-library">
+      <div class="panel-head">
+        <span class="panel-title">BIBLIOTHÈQUE · glisse vers un jour</span>
+        <button class="tool-btn" data-action="add-lib-exercise">+ EXERCICE</button>
+      </div>
+      <div class="lib-controls">
+        <input class="lib-search" id="lib-search" placeholder="Rechercher..." type="search">
+        <select class="lib-filter" id="lib-filter"></select>
+      </div>
+      <div class="panel-body" id="library-body"></div>
+    </section>
+  </main>
+
+  <div id="modal-container"></div>
+
+  <script>
+    // ============================================================
+    // DEFAULTS (dupliqués depuis index.html)
+    // ============================================================
+    const DEFAULT_LIBRARY = {
+      'ex_squat_comp': { id: 'ex_squat_comp', name: 'Squat compétition', group: 'squat', restDefault: 240 },
+      'ex_squat_tempo': { id: 'ex_squat_tempo', name: 'Squat tempo (3s descente)', group: 'squat', restDefault: 180 },
+      'ex_squat_pause': { id: 'ex_squat_pause', name: 'Pause squat 2s', group: 'squat', restDefault: 180 },
+      'ex_high_bar': { id: 'ex_high_bar', name: 'High bar squat', group: 'squat', restDefault: 180 },
+      'ex_bench_comp': { id: 'ex_bench_comp', name: 'Bench compétition', group: 'bench', restDefault: 240 },
+      'ex_bench_pause': { id: 'ex_bench_pause', name: 'Bench compétition pause 1s', group: 'bench', restDefault: 240 },
+      'ex_dl_comp': { id: 'ex_dl_comp', name: 'Soulevé de terre', group: 'deadlift', restDefault: 300 },
+      'ex_rdl': { id: 'ex_rdl', name: 'Romanian deadlift', group: 'deadlift', restDefault: 180 },
+      'ex_deficit_dl': { id: 'ex_deficit_dl', name: 'Deficit deadlift 2,5 cm', group: 'deadlift', restDefault: 240 },
+      'ex_ohp': { id: 'ex_ohp', name: 'Overhead press', group: 'ohp', restDefault: 180 },
+      'ex_leg_press': { id: 'ex_leg_press', name: 'Leg press', group: 'legs', restDefault: 120 },
+      'ex_leg_curl': { id: 'ex_leg_curl', name: 'Leg curl couché', group: 'legs', restDefault: 90 },
+      'ex_leg_ext': { id: 'ex_leg_ext', name: 'Leg extension', group: 'legs', restDefault: 90 },
+      'ex_bulgarian': { id: 'ex_bulgarian', name: 'Bulgarian split squat', group: 'legs', restDefault: 120 },
+      'ex_db_bench': { id: 'ex_db_bench', name: 'Flat DB bench', group: 'push', restDefault: 150 },
+      'ex_incline_db': { id: 'ex_incline_db', name: 'Bench incliné haltères', group: 'push', restDefault: 150 },
+      'ex_triceps_pd': { id: 'ex_triceps_pd', name: 'Triceps haute poulie', group: 'push', restDefault: 60 },
+      'ex_skull': { id: 'ex_skull', name: 'Skullcrushers', group: 'push', restDefault: 90 },
+      'ex_jm_press': { id: 'ex_jm_press', name: 'JM press', group: 'push', restDefault: 90 },
+      'ex_dips': { id: 'ex_dips', name: 'Dips', group: 'push', restDefault: 120 },
+      'ex_row_cable': { id: 'ex_row_cable', name: 'Tirage horizontal poulie', group: 'pull', restDefault: 90 },
+      'ex_pulldown': { id: 'ex_pulldown', name: 'Tirage vertical prise serrée', group: 'pull', restDefault: 90 },
+      'ex_row_bb': { id: 'ex_row_bb', name: 'Tirage barre buste penché', group: 'pull', restDefault: 120 },
+      'ex_pullups': { id: 'ex_pullups', name: 'Tractions lestées', group: 'pull', restDefault: 120 },
+      'ex_pulldown_wide': { id: 'ex_pulldown_wide', name: 'Tirage vertical prise large', group: 'pull', restDefault: 90 },
+      'ex_rear_delt': { id: 'ex_rear_delt', name: 'Oiseau (rear delt fly)', group: 'shoulders', restDefault: 60 },
+      'ex_lat_raise': { id: 'ex_lat_raise', name: 'Élévations latérales', group: 'shoulders', restDefault: 60 },
+      'ex_face_pull': { id: 'ex_face_pull', name: 'Face pull', group: 'shoulders', restDefault: 60 },
+      'ex_pull_apart': { id: 'ex_pull_apart', name: 'Pull-apart élastique', group: 'shoulders', restDefault: 45 },
+      'ex_ext_rot': { id: 'ex_ext_rot', name: 'Rotation externe élastique', group: 'shoulders', restDefault: 45 },
+      'ex_back_ext': { id: 'ex_back_ext', name: '45° back extension lestée', group: 'core', restDefault: 90 },
+      'ex_plank': { id: 'ex_plank', name: 'Gainage (planche)', group: 'core', restDefault: 60 },
+      'ex_ab_wheel': { id: 'ex_ab_wheel', name: 'Roue abdominale', group: 'core', restDefault: 60 },
+      'ex_rest': { id: 'ex_rest', name: 'Récupération / mobilité', group: 'other', restDefault: 0 },
+    };
+
+    const GROUPS = ['squat', 'bench', 'deadlift', 'ohp', 'legs', 'push', 'pull', 'shoulders', 'core', 'other'];
+    const GROUP_LABELS = { squat: 'Squat', bench: 'Bench', deadlift: 'Deadlift', ohp: 'OHP', legs: 'Jambes', push: 'Push', pull: 'Dos', shoulders: 'Épaules', core: 'Gainage', other: 'Autre' };
+
+    const DEFAULT_PROGRAM = {
+      name: 'Peak block juillet 2026',
+      weeks: [
+        { id: 'w1', name: 'Transition', days: [
+          { id: 'w1d1', label: 'Lundi', name: 'Squat', date: '2026-06-22', ex: [
+            { libId: 'ex_squat_comp', sets: 4, reps: 3, weight: 180, rpe: 7, rest: 240, main: true },
+            { libId: 'ex_leg_press', sets: 3, reps: 10, rest: 120, note: 'Dernière série RPE 8' },
+            { libId: 'ex_leg_curl', sets: 3, reps: 10, rest: 90 },
+          ]},
+          { id: 'w1d2', label: 'Mercredi', name: 'Bench + Dos', date: '2026-06-24', ex: [
+            { libId: 'ex_bench_comp', sets: 4, reps: 4, weight: 110, rpe: 7.5, rest: 240, main: true },
+            { libId: 'ex_db_bench', sets: 3, reps: 8, rest: 150, note: '~32,5-35 kg/main, semi-pronation' },
+            { libId: 'ex_row_cable', sets: 4, reps: 10, rest: 90 },
+            { libId: 'ex_pulldown', sets: 4, reps: 10, rest: 90 },
+            { libId: 'ex_rear_delt', sets: 3, reps: 12, rest: 60 },
+            { libId: 'ex_triceps_pd', sets: 3, reps: 12, rest: 60 },
+          ]},
+          { id: 'w1d3', label: 'Vendredi', name: 'Deadlift + Tempo squat', date: '2026-06-26', ex: [
+            { libId: 'ex_dl_comp', sets: 3, reps: 3, weight: 252.5, rpe: 7.5, rest: 300, main: true },
+            { libId: 'ex_rdl', sets: 3, reps: 8, weight: 140, rest: 180 },
+            { libId: 'ex_squat_tempo', sets: 3, reps: 4, weight: 160, rpe: 7, rest: 180 },
+            { libId: 'ex_back_ext', sets: 3, reps: 10, rest: 90, note: '10-15 kg' },
+            { libId: 'ex_row_bb', sets: 3, reps: 8, weight: 90, rest: 120 },
+          ]},
+          { id: 'w1d4', label: 'Samedi', name: 'Bench pause + OHP', date: '2026-06-27', ex: [
+            { libId: 'ex_bench_pause', sets: 4, reps: 5, weight: 95, rpe: 7, rest: 240, main: true },
+            { libId: 'ex_ohp', sets: 3, reps: 5, weight: 75, rpe: 7, rest: 180, main: true },
+            { libId: 'ex_pullups', sets: 4, reps: '6-8', rest: 120, note: '+10 kg' },
+            { libId: 'ex_skull', sets: 3, reps: 10, weight: 45, rest: 90 },
+            { libId: 'ex_pull_apart', sets: 3, reps: 20, rest: 45 },
+          ]},
+        ]},
+        { id: 'w2', name: 'Intensification', days: [
+          { id: 'w2d1', label: 'Lundi', name: 'Squat', date: '2026-06-29', ex: [
+            { libId: 'ex_squat_comp', sets: 4, reps: 3, weight: 187.5, rpe: 8, rest: 240, main: true },
+            { libId: 'ex_leg_press', sets: 3, reps: 8, rest: 120, note: 'Dernière série RPE 8' },
+            { libId: 'ex_leg_curl', sets: 3, reps: 10, rest: 90 },
+          ]},
+          { id: 'w2d2', label: 'Mercredi', name: 'Bench + Dos', date: '2026-07-01', ex: [
+            { libId: 'ex_bench_comp', sets: 4, reps: 3, weight: 117.5, rpe: 8, rest: 240, main: true },
+            { libId: 'ex_db_bench', sets: 3, reps: 6, rest: 150, note: '+2,5 kg/main' },
+            { libId: 'ex_row_cable', sets: 4, reps: 8, rest: 90 },
+            { libId: 'ex_pulldown', sets: 4, reps: 8, rest: 90 },
+            { libId: 'ex_rear_delt', sets: 3, reps: 12, rest: 60 },
+            { libId: 'ex_triceps_pd', sets: 3, reps: 10, rest: 60 },
+          ]},
+          { id: 'w2d3', label: 'Vendredi', name: 'Deadlift + Tempo squat', date: '2026-07-03', ex: [
+            { libId: 'ex_dl_comp', sets: 3, reps: 2, weight: 270, rpe: 8, rest: 300, main: true },
+            { libId: 'ex_rdl', sets: 3, reps: 6, weight: 160, rest: 180 },
+            { libId: 'ex_squat_tempo', sets: 3, reps: 3, weight: 170, rpe: 8, rest: 180 },
+            { libId: 'ex_back_ext', sets: 3, reps: 8, rest: 90, note: '15-20 kg' },
+            { libId: 'ex_row_bb', sets: 3, reps: 8, weight: 97.5, rest: 120 },
+          ]},
+          { id: 'w2d4', label: 'Samedi', name: 'Bench pause + OHP', date: '2026-07-04', ex: [
+            { libId: 'ex_bench_pause', sets: 4, reps: 4, weight: 102.5, rpe: 8, rest: 240, main: true },
+            { libId: 'ex_ohp', sets: 4, reps: 4, weight: 82.5, rpe: 8, rest: 180, main: true },
+            { libId: 'ex_pullups', sets: 4, reps: '5-6', rest: 120, note: '+15 kg' },
+            { libId: 'ex_skull', sets: 3, reps: 8, weight: 50, rest: 90 },
+            { libId: 'ex_pull_apart', sets: 3, reps: 25, rest: 45 },
+          ]},
+        ]},
+        { id: 'w3', name: 'Peak heavy', days: [
+          { id: 'w3d1', label: 'Lundi', name: 'Squat heavy', date: '2026-07-06', ex: [
+            { libId: 'ex_squat_comp', sets: 3, reps: 2, weight: 200, rpe: 8.5, rest: 300, main: true },
+            { libId: 'ex_leg_press', sets: 2, reps: 6, rest: 120, note: 'RPE 7 max' },
+            { libId: 'ex_leg_curl', sets: 2, reps: 8, rest: 90 },
+          ]},
+          { id: 'w3d2', label: 'Mercredi', name: 'Bench primer', date: '2026-07-08', ex: [
+            { libId: 'ex_bench_comp', sets: 4, reps: 2, weight: 122.5, rpe: 8, rest: 240, main: true },
+            { libId: 'ex_row_cable', sets: 3, reps: 8, rest: 90 },
+            { libId: 'ex_rear_delt', sets: 2, reps: 12, rest: 60 },
+            { libId: 'ex_pull_apart', sets: 2, reps: 20, rest: 45 },
+          ]},
+          { id: 'w3d3', label: 'Vendredi', name: 'TEST Deadlift', date: '2026-07-10', isTest: true, ex: [
+            { libId: 'ex_dl_comp', sets: 8, reps: 1, main: true, rest: 300, isTest: true,
+              overrides: [
+                { weight: 100, reps: 5, label: 'Échauffement' },
+                { weight: 160, reps: 3, label: 'Échauffement' },
+                { weight: 220, reps: 2, label: 'Échauffement' },
+                { weight: 250, reps: 1, label: 'Échauffement' },
+                { weight: 280, reps: 1, label: 'Échauffement' },
+                { weight: 305, reps: 1, label: 'Essai 1 cible', attempt: true },
+                { weight: 315, reps: 1, label: 'Essai 2 PR', attempt: true },
+                { weight: 320, reps: 1, label: 'Stretch PR', attempt: true },
+              ]
+            },
+          ]},
+          { id: 'w3d4', label: 'Samedi', name: 'Repos complet', date: '2026-07-11', ex: [
+            { libId: 'ex_rest', sets: 1, reps: '—', rest: 0, note: 'Marche tranquille OK. Pas de muscu.' },
+          ]},
+        ]},
+        { id: 'w4', name: 'Test week', days: [
+          { id: 'w4d1', label: 'Lundi', name: 'TEST Squat', date: '2026-07-13', isTest: true, ex: [
+            { libId: 'ex_squat_comp', sets: 9, reps: 1, main: true, rest: 300, isTest: true,
+              overrides: [
+                { weight: 60, reps: 5, label: 'Échauffement' },
+                { weight: 100, reps: 5, label: 'Échauffement' },
+                { weight: 140, reps: 3, label: 'Échauffement' },
+                { weight: 175, reps: 2, label: 'Échauffement' },
+                { weight: 200, reps: 1, label: 'Échauffement' },
+                { weight: 215, reps: 1, label: 'Échauffement' },
+                { weight: 230, reps: 1, label: 'Essai 1 cible', attempt: true },
+                { weight: 237.5, reps: 1, label: 'Essai 2 cible', attempt: true },
+                { weight: 245, reps: 1, label: 'Stretch PR', attempt: true },
+              ]
+            },
+          ]},
+          { id: 'w4d2', label: 'Mercredi', name: 'TEST Bench + OHP', date: '2026-07-15', isTest: true, ex: [
+            { libId: 'ex_bench_comp', sets: 8, reps: 1, main: true, rest: 240, isTest: true,
+              overrides: [
+                { weight: 60, reps: 5, label: 'Échauffement' },
+                { weight: 80, reps: 3, label: 'Échauffement' },
+                { weight: 100, reps: 2, label: 'Échauffement' },
+                { weight: 115, reps: 1, label: 'Échauffement' },
+                { weight: 130, reps: 1, label: 'Échauffement' },
+                { weight: 140, reps: 1, label: 'Essai 1 cible', attempt: true },
+                { weight: 145, reps: 1, label: 'Essai 2 cible', attempt: true },
+                { weight: 150, reps: 1, label: 'Stretch', attempt: true },
+              ]
+            },
+            { libId: 'ex_ohp', sets: 5, reps: 1, rest: 240,
+              overrides: [
+                { weight: 50, reps: 5, label: 'Échauffement' },
+                { weight: 65, reps: 3, label: 'Échauffement' },
+                { weight: 80, reps: 1, label: 'Échauffement' },
+                { weight: 90, reps: 1, label: 'Échauffement' },
+                { weight: 100, reps: 1, label: 'Single PR', attempt: true },
+              ]
+            },
+          ]},
+        ]},
+      ],
+    };
+
+    // ============================================================
+    // STORAGE + STATE
+    // ============================================================
+    const K_LIBRARY = 'pl-library';
+    const K_PROGRAM = 'pl-program';
+
+    const state = {
+      library: {},
+      program: { name: '', weeks: [] },
+      expandedWeeks: {},
+      librarySearch: '',
+      libraryFilter: 'all',
+      modal: null,
+    };
+
+    function saveLibrary() { try { localStorage.setItem(K_LIBRARY, JSON.stringify(state.library)); flashSaved(); } catch (e) {} }
+    function saveProgram() { try { localStorage.setItem(K_PROGRAM, JSON.stringify(state.program)); flashSaved(); } catch (e) {} }
+    function loadAll() {
+      try { const r = localStorage.getItem(K_LIBRARY); if (r) state.library = JSON.parse(r); } catch (e) {}
+      try { const r = localStorage.getItem(K_PROGRAM); if (r) state.program = JSON.parse(r); } catch (e) {}
+    }
+
+    let saveIndTimeout = null;
+    function flashSaved() {
+      const el = document.getElementById('save-ind');
+      if (!el) return;
+      el.classList.add('visible');
+      clearTimeout(saveIndTimeout);
+      saveIndTimeout = setTimeout(() => el.classList.remove('visible'), 1500);
+    }
+
+    // ============================================================
+    // HELPERS
+    // ============================================================
+    function esc(s) { return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+    function uid(p) { return p + '_' + Math.random().toString(36).slice(2, 8) + Date.now().toString(36).slice(-4); }
+    function getLibEx(id) { return state.library[id] || null; }
+    function getExDef(ex) {
+      if (ex.libId) { const lib = getLibEx(ex.libId); if (lib) return lib; }
+      if (ex.name) { const f = Object.values(state.library).find(x => x.name === ex.name); if (f) return f; return { name: ex.name, group: 'other' }; }
+      return { name: '?', group: 'other' };
+    }
+    function findWeek(id) { return state.program.weeks.find(w => w.id === id); }
+    function findDay(wId, dId) { const w = findWeek(wId); return w ? w.days.find(d => d.id === dId) : null; }
+    function fmtDate(s) { if (!s) return ''; return new Date(s + 'T00:00:00').toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short' }); }
+    function deepClone(o) { return JSON.parse(JSON.stringify(o)); }
+
+    // ============================================================
+    // RENDER: PROGRAM
+    // ============================================================
+    function renderProgram() {
+      const body = document.getElementById('program-body');
+      const weeks = state.program.weeks || [];
+      if (weeks.length === 0) {
+        body.innerHTML = `<div class="empty-state">Aucune semaine.<br>Touche "+ SEMAINE" en haut pour commencer.</div>
+          <button class="add-week-btn" data-action="add-week">+ AJOUTER UNE SEMAINE</button>`;
+        return;
+      }
+      body.innerHTML = weeks.map((w, wIdx) => {
+        const expanded = state.expandedWeeks[w.id] !== false;
+        return `<div class="week">
+          <div class="week-head" data-action="toggle-week" data-week="${w.id}">
+            <span class="chevron">${expanded ? '▼' : '▶'}</span>
+            <span class="week-name">S${wIdx + 1} · ${esc(w.name)}</span>
+            <span class="week-badge">${w.days.length} j</span>
+            <div class="row-actions">
+              <button class="icon-btn" data-action="rename-week" data-week="${w.id}" title="Renommer">✎</button>
+              <button class="icon-btn" data-action="duplicate-week" data-week="${w.id}" title="Dupliquer">⧉</button>
+              <button class="icon-btn danger" data-action="delete-week" data-week="${w.id}" title="Supprimer">×</button>
+            </div>
+          </div>
+          ${expanded ? `<div class="week-body">
+            ${w.days.map(d => renderDay(w.id, d)).join('')}
+            <button class="add-btn add-day-btn" data-action="add-day" data-week="${w.id}">+ AJOUTER UN JOUR</button>
+          </div>` : ''}
+        </div>`;
+      }).join('') + `<button class="add-week-btn" data-action="add-week">+ AJOUTER UNE SEMAINE</button>`;
+    }
+
+    function renderDay(wId, d) {
+      return `<div class="day" data-drop-zone="day" data-week="${wId}" data-day="${d.id}">
+        <div class="day-head">
+          <div class="day-head-name">
+            <span class="day-label">${esc(d.label || '?')}</span>
+            ${d.date ? `<span class="day-name-sep">·</span><span class="day-label">${esc(fmtDate(d.date))}</span>` : ''}
+            <span class="day-name-sep">·</span>
+            <span class="day-name">${esc(d.name || '?')}</span>
+            ${d.isTest ? '<span class="day-test">TEST</span>' : ''}
+          </div>
+          <div class="row-actions">
+            <button class="icon-btn" data-action="edit-day" data-week="${wId}" data-day="${d.id}" title="Modifier">✎</button>
+            <button class="icon-btn" data-action="duplicate-day" data-week="${wId}" data-day="${d.id}" title="Dupliquer">⧉</button>
+            <button class="icon-btn danger" data-action="delete-day" data-week="${wId}" data-day="${d.id}" title="Supprimer">×</button>
+          </div>
+        </div>
+        <div class="day-body">
+          ${(d.ex || []).map((ex, i) => renderExercise(wId, d.id, ex, i)).join('')}
+          <button class="add-btn" data-action="add-exercise" data-week="${wId}" data-day="${d.id}">+ ajouter un exercice</button>
+        </div>
+      </div>`;
+    }
+
+    function renderExercise(wId, dId, ex, i) {
+      const def = getExDef(ex);
+      const canInlineEdit = !ex.isTest;
+      const extraBits = [];
+      if (ex.rpe) extraBits.push(`RPE ${ex.rpe}`);
+      if (ex.rest) extraBits.push(`${ex.rest}s`);
+      const extraStr = extraBits.join(' · ');
+      return `<div class="ex-row ${ex.main ? 'main-mark' : ''}" draggable="true" data-draggable="program" data-week="${wId}" data-day="${dId}" data-ex-idx="${i}"${ex.note ? ` title="${esc(ex.note)}"` : ''}>
+        <span class="grip">⋮⋮</span>
+        <button class="ex-marker ${ex.main ? 'main' : ''}" data-action="edit-exercise" data-week="${wId}" data-day="${dId}" data-ex-idx="${i}" title="${ex.main ? 'Mouvement principal' : 'Accessoire'} · clique pour tout modifier">${ex.main ? '●' : '○'}</button>
+        <span class="ex-name" title="${esc(def.name)}">${esc(def.name)}</span>
+        ${canInlineEdit ? `<div class="ex-inline-edit">
+          <input class="inline-input i-sets" type="number" min="1" value="${ex.sets ?? ''}" data-inline="sets" data-week="${wId}" data-day="${dId}" data-ex-idx="${i}" draggable="false" title="Séries">
+          <span class="inline-sep">×</span>
+          <input class="inline-input i-reps" type="text" value="${esc(ex.reps ?? '')}" data-inline="reps" data-week="${wId}" data-day="${dId}" data-ex-idx="${i}" draggable="false" title="Reps">
+          <span class="inline-sep">@</span>
+          <input class="inline-input i-weight" type="number" step="2.5" value="${ex.weight ?? ''}" data-inline="weight" data-week="${wId}" data-day="${dId}" data-ex-idx="${i}" placeholder="—" draggable="false" title="Charge">
+          <span class="inline-unit">kg</span>
+        </div>` : `<span class="ex-stats">${ex.overrides ? ex.overrides.length : ex.sets} étapes · TEST</span>`}
+        ${extraStr ? `<span class="ex-extra">${esc(extraStr)}</span>` : ''}
+        <div class="row-actions">
+          ${canInlineEdit ? `<button class="icon-btn" data-action="edit-exercise" data-week="${wId}" data-day="${dId}" data-ex-idx="${i}" title="RPE, repos, note, mouvement principal">✎</button>` : ''}
+          <button class="icon-btn danger" data-action="delete-exercise" data-week="${wId}" data-day="${dId}" data-ex-idx="${i}" title="Supprimer">×</button>
+        </div>
+      </div>`;
+    }
+
+    // ============================================================
+    // RENDER: LIBRARY
+    // ============================================================
+    function renderLibrary() {
+      const body = document.getElementById('library-body');
+      const q = state.librarySearch.toLowerCase().trim();
+      const items = Object.values(state.library)
+        .filter(x => state.libraryFilter === 'all' || x.group === state.libraryFilter)
+        .filter(x => !q || x.name.toLowerCase().includes(q))
+        .sort((a, b) => a.name.localeCompare(b.name));
+      if (items.length === 0) {
+        body.innerHTML = `<div class="lib-empty">Aucun exercice</div>`;
+        return;
+      }
+      body.innerHTML = items.map(ex => `
+        <div class="lib-item" draggable="true" data-draggable="library" data-lib-id="${ex.id}">
+          <span class="grip">⋮⋮</span>
+          <span class="lib-name">${esc(ex.name)}</span>
+          <span class="lib-group">${esc(GROUP_LABELS[ex.group] || ex.group)}</span>
+          <button class="icon-btn" data-action="edit-lib-exercise" data-lib-id="${ex.id}" title="Modifier">✎</button>
+        </div>
+      `).join('');
+    }
+
+    function renderLibraryFilter() {
+      const sel = document.getElementById('lib-filter');
+      sel.innerHTML = `<option value="all">Tous</option>` +
+        GROUPS.map(g => `<option value="${g}"${state.libraryFilter === g ? ' selected' : ''}>${GROUP_LABELS[g]}</option>`).join('');
+    }
+
+    // ============================================================
+    // RENDER: MODAL
+    // ============================================================
+    function renderModal() {
+      const c = document.getElementById('modal-container');
+      if (!state.modal) { c.innerHTML = ''; return; }
+      const m = state.modal;
+      let inner = '';
+      if (m.type === 'edit-exercise') {
+        const ex = m.data.exercise;
+        const def = getExDef(ex);
+        inner = wrap(def.name, `Séries, reps et charge se modifient directement sur la ligne. Ici : RPE, repos, note, mouvement principal.`, `
+          <div class="modal-field-row">
+            <div class="modal-field"><label class="modal-label">RPE</label><input class="modal-input" id="m-rpe" type="number" step="0.5" min="1" max="10" value="${ex.rpe ?? ''}" placeholder="optionnel"></div>
+            <div class="modal-field"><label class="modal-label">REPOS (secondes)</label><input class="modal-input" id="m-rest" type="number" value="${ex.rest ?? 60}"></div>
+          </div>
+          <div class="modal-field"><label class="modal-label">NOTE</label><textarea class="modal-input textarea" id="m-note" placeholder="ex. ~32,5 kg/main, semi-pronation">${esc(ex.note || '')}</textarea></div>
+          <div class="modal-check-row" data-action="toggle-main-modal">
+            <div class="modal-check ${ex.main ? 'checked' : ''}" id="m-main-check">${ex.main ? '✓' : ''}</div>
+            <span class="modal-check-lbl">Mouvement principal (compte dans les stats de récup)</span>
+          </div>
+        `, [
+          { label: 'Annuler', cls: 'cancel', action: 'close-modal' },
+          { label: 'Enregistrer', cls: 'confirm', action: 'save-exercise' },
+        ]);
+      } else if (m.type === 'edit-day') {
+        const d = m.data.day;
+        inner = wrap('Modifier la séance', 'Libellé, nom, date', `
+          <div class="modal-field-row">
+            <div class="modal-field"><label class="modal-label">LIBELLÉ (jour)</label><input class="modal-input text-normal" id="m-label" type="text" value="${esc(d.label || '')}" placeholder="ex. Lundi"></div>
+            <div class="modal-field"><label class="modal-label">DATE (optionnel)</label><input class="modal-input" id="m-date" type="date" value="${esc(d.date || '')}"></div>
+          </div>
+          <div class="modal-field"><label class="modal-label">NOM DE LA SÉANCE</label><input class="modal-input text-normal" id="m-name" type="text" value="${esc(d.name || '')}" placeholder="ex. Squat + OHP"></div>
+        `, [
+          { label: 'Annuler', cls: 'cancel', action: 'close-modal' },
+          { label: 'Enregistrer', cls: 'confirm', action: 'save-day' },
+        ]);
+      } else if (m.type === 'edit-lib-exercise') {
+        const ex = m.data.libEx;
+        const isNew = m.data.isNew;
+        inner = wrap(isNew ? 'Nouvel exercice' : 'Modifier exercice', 'Bibliothèque', `
+          <div class="modal-field"><label class="modal-label">NOM</label><input class="modal-input text-normal" id="m-name" type="text" value="${esc(ex.name || '')}" placeholder="ex. Squat compétition"></div>
+          <div class="modal-field-row">
+            <div class="modal-field"><label class="modal-label">GROUPE</label>
+              <select class="modal-input text-normal" id="m-group">
+                ${GROUPS.map(g => `<option value="${g}"${ex.group === g ? ' selected' : ''}>${GROUP_LABELS[g]}</option>`).join('')}
+              </select>
+            </div>
+            <div class="modal-field"><label class="modal-label">REPOS DÉFAUT (sec)</label><input class="modal-input" id="m-rest" type="number" value="${ex.restDefault ?? 60}"></div>
+          </div>
+        `, [
+          ...(isNew ? [] : [{ label: 'Supprimer', cls: 'danger', action: 'delete-lib-exercise' }]),
+          { label: 'Annuler', cls: 'cancel', action: 'close-modal' },
+          { label: 'Enregistrer', cls: 'confirm', action: 'save-lib-exercise' },
+        ]);
+      } else if (m.type === 'library-manager') {
+        const items = Object.values(state.library).sort((a, b) => (a.group + a.name).localeCompare(b.group + b.name));
+        const grouped = {};
+        items.forEach(ex => { if (!grouped[ex.group]) grouped[ex.group] = []; grouped[ex.group].push(ex); });
+        inner = wrap('Gestion bibliothèque', `${items.length} exercices au total`, `
+          <button class="tool-btn primary" style="width:100%;padding:10px;margin-bottom:14px;" data-action="add-lib-exercise">+ NOUVEL EXERCICE</button>
+          <div style="max-height:50vh;overflow-y:auto;">
+            ${Object.entries(grouped).map(([g, list]) => `
+              <div style="margin-bottom:12px;">
+                <div style="font-size:10px;letter-spacing:2px;color:var(--text-2);font-weight:700;padding:6px 0;">${esc(GROUP_LABELS[g] || g).toUpperCase()}</div>
+                ${list.map(ex => `<div class="lib-item">
+                  <span class="lib-name">${esc(ex.name)}</span>
+                  <span class="lib-group">${ex.restDefault}s</span>
+                  <button class="icon-btn" data-action="edit-lib-exercise" data-lib-id="${ex.id}">✎</button>
+                </div>`).join('')}
+              </div>
+            `).join('')}
+          </div>
+        `, [{ label: 'Fermer', cls: 'cancel', action: 'close-modal' }]);
+      } else if (m.type === 'send-to-phone') {
+        const data = JSON.stringify({ program: state.program, library: state.library }, null, 0);
+        inner = wrap('Envoyer au téléphone', 'Copie ce texte et importe-le dans l\'app iPhone', `
+          <div class="modal-instruct">
+            <b>Comment faire :</b><br>
+            1. Clique <b>Copier</b> ci-dessous<br>
+            2. Envoie-toi le texte (mail, notes iCloud, message)<br>
+            3. Sur ton iPhone : app PL Tracker → onglet <b>Éditeur</b> → bouton <b>Import</b> → colle
+          </div>
+          <div class="modal-field" style="margin-top:14px;">
+            <label class="modal-label">DONNÉES (${(data.length / 1024).toFixed(1)} Ko)</label>
+            <textarea class="modal-input mono-code" id="m-json" readonly>${esc(data)}</textarea>
+          </div>
+        `, [
+          { label: 'Fermer', cls: 'cancel', action: 'close-modal' },
+          { label: '📋 Copier', cls: 'confirm', action: 'copy-export' },
+        ]);
+      } else if (m.type === 'import') {
+        inner = wrap('Importer un programme', 'Colle un JSON généré par un export', `
+          <div class="modal-instruct">
+            Cela va remplacer <b>ton programme et ta bibliothèque</b> actuels. Une confirmation te sera demandée.
+          </div>
+          <div class="modal-field" style="margin-top:14px;">
+            <label class="modal-label">JSON</label>
+            <textarea class="modal-input mono-code" id="m-json" placeholder='{ "program": ..., "library": ... }'></textarea>
+          </div>
+        `, [
+          { label: 'Annuler', cls: 'cancel', action: 'close-modal' },
+          { label: 'Importer', cls: 'confirm', action: 'do-import' },
+        ]);
+      }
+      c.innerHTML = inner;
+      // Auto-focus first input
+      setTimeout(() => {
+        const first = c.querySelector('input, textarea, select');
+        if (first && !first.readOnly) first.focus();
+      }, 50);
+    }
+
+    function wrap(title, subtitle, body, actions) {
+      return `<div class="modal-overlay" data-action="close-modal-bg">
+        <div class="modal">
+          <div class="modal-title">${esc(title)}</div>
+          ${subtitle ? `<div class="modal-subtitle">${esc(subtitle)}</div>` : ''}
+          ${body}
+          <div class="modal-actions">
+            ${actions.map(a => `<button class="modal-btn ${a.cls}" data-action="${a.action}">${esc(a.label)}</button>`).join('')}
+          </div>
+        </div>
+      </div>`;
+    }
+
+    // ============================================================
+    // RENDER: ALL
+    // ============================================================
+    function render() {
+      document.getElementById('prog-name').textContent = state.program.name || 'Programme sans nom';
+      renderProgram();
+      renderLibrary();
+      renderModal();
+    }
+
+    // ============================================================
+    // ACTIONS
+    // ============================================================
+    function renameProgram() {
+      const v = prompt('Nom du programme :', state.program.name || '');
+      if (v !== null) { state.program.name = v.trim(); saveProgram(); render(); }
+    }
+    function addWeek() {
+      const num = state.program.weeks.length + 1;
+      const w = { id: uid('w'), name: `Semaine ${num}`, days: [] };
+      state.program.weeks.push(w);
+      state.expandedWeeks[w.id] = true;
+      saveProgram(); render();
+    }
+    function renameWeek(id) {
+      const w = findWeek(id); if (!w) return;
+      const v = prompt('Nom de la semaine :', w.name);
+      if (v && v.trim()) { w.name = v.trim(); saveProgram(); render(); }
+    }
+    function duplicateWeek(id) {
+      const w = findWeek(id); if (!w) return;
+      const copy = deepClone(w);
+      copy.id = uid('w');
+      copy.name = w.name + ' (copie)';
+      copy.days.forEach(d => {
+        d.id = uid('d');
+      });
+      const idx = state.program.weeks.indexOf(w);
+      state.program.weeks.splice(idx + 1, 0, copy);
+      state.expandedWeeks[copy.id] = true;
+      saveProgram(); render();
+    }
+    function deleteWeek(id) {
+      const w = findWeek(id); if (!w) return;
+      if (!confirm(`Supprimer la semaine "${w.name}" et ses ${w.days.length} séances ?`)) return;
+      state.program.weeks = state.program.weeks.filter(x => x.id !== id);
+      saveProgram(); render();
+    }
+    function toggleWeek(id) {
+      state.expandedWeeks[id] = !(state.expandedWeeks[id] !== false);
+      render();
+    }
+    function addDay(wId) {
+      const w = findWeek(wId); if (!w) return;
+      const d = { id: uid('d'), label: 'Jour', name: 'Nouvelle séance', date: '', ex: [] };
+      w.days.push(d);
+      state.modal = { type: 'edit-day', data: { weekId: wId, day: d } };
+      saveProgram(); render();
+    }
+    function editDay(wId, dId) {
+      const d = findDay(wId, dId); if (!d) return;
+      state.modal = { type: 'edit-day', data: { weekId: wId, day: d } };
+      render();
+    }
+    function saveDay() {
+      const d = state.modal.data.day;
+      d.label = document.getElementById('m-label').value.trim();
+      d.name = document.getElementById('m-name').value.trim();
+      d.date = document.getElementById('m-date').value || '';
+      state.modal = null;
+      saveProgram(); render();
+    }
+    function duplicateDay(wId, dId) {
+      const w = findWeek(wId); const d = findDay(wId, dId);
+      if (!w || !d) return;
+      const copy = deepClone(d);
+      copy.id = uid('d');
+      copy.name = d.name + ' (copie)';
+      const idx = w.days.indexOf(d);
+      w.days.splice(idx + 1, 0, copy);
+      saveProgram(); render();
+    }
+    function deleteDay(wId, dId) {
+      const d = findDay(wId, dId); if (!d) return;
+      if (!confirm(`Supprimer la séance "${d.name}" ?`)) return;
+      const w = findWeek(wId);
+      w.days = w.days.filter(x => x.id !== dId);
+      saveProgram(); render();
+    }
+    function editExercise(wId, dId, i) {
+      const d = findDay(wId, dId); if (!d) return;
+      const ex = d.ex[i];
+      state.modal = { type: 'edit-exercise', data: { weekId: wId, dayId: dId, exIdx: i, exercise: deepClone(ex) } };
+      render();
+    }
+    function saveExercise() {
+      const { weekId, dayId, exIdx } = state.modal.data;
+      const d = findDay(weekId, dayId); if (!d) return;
+      const target = d.ex[exIdx];
+      const rV = document.getElementById('m-rpe').value;
+      const restV = parseInt(document.getElementById('m-rest').value);
+      const noteV = document.getElementById('m-note').value.trim();
+      target.rpe = rV ? parseFloat(rV) : null;
+      target.rest = isNaN(restV) ? 60 : restV;
+      if (noteV) target.note = noteV; else delete target.note;
+      target.main = state.modal.data.exercise.main;
+      state.modal = null;
+      saveProgram(); render();
+    }
+    function toggleMainModal() {
+      state.modal.data.exercise.main = !state.modal.data.exercise.main;
+      render();
+    }
+    function deleteExercise(wId, dId, i) {
+      const d = findDay(wId, dId); if (!d) return;
+      d.ex.splice(i, 1);
+      saveProgram(); render();
+    }
+    function addExercise(wId, dId) {
+      // Open a picker modal
+      const items = Object.values(state.library).sort((a, b) => a.name.localeCompare(b.name));
+      const grouped = {};
+      items.forEach(ex => { if (!grouped[ex.group]) grouped[ex.group] = []; grouped[ex.group].push(ex); });
+      state.modal = { type: 'pick-exercise-inline', data: { weekId: wId, dayId: dId } };
+      // Simple inline picker via prompt-alternative: use modal
+      const c = document.getElementById('modal-container');
+      c.innerHTML = `<div class="modal-overlay" data-action="close-modal-bg">
+        <div class="modal">
+          <div class="modal-title">Ajouter un exercice</div>
+          <div class="modal-subtitle">Choisis dans la bibliothèque</div>
+          <input class="modal-input text-normal" id="pick-search" type="search" placeholder="Rechercher..." style="margin-bottom:12px;">
+          <div id="pick-list" style="max-height:50vh;overflow-y:auto;">
+            ${items.map(ex => `<div class="lib-item pick-choice" data-lib-id="${ex.id}">
+              <span class="lib-name">${esc(ex.name)}</span>
+              <span class="lib-group">${esc(GROUP_LABELS[ex.group] || ex.group)}</span>
+            </div>`).join('')}
+          </div>
+          <div class="modal-actions">
+            <button class="modal-btn cancel" data-action="close-modal">Annuler</button>
+          </div>
+        </div>
+      </div>`;
+      const search = document.getElementById('pick-search');
+      const list = document.getElementById('pick-list');
+      search.focus();
+      search.addEventListener('input', () => {
+        const q = search.value.toLowerCase().trim();
+        list.querySelectorAll('.pick-choice').forEach(el => {
+          const name = el.querySelector('.lib-name').textContent.toLowerCase();
+          el.style.display = (!q || name.includes(q)) ? '' : 'none';
+        });
+      });
+      list.addEventListener('click', (e) => {
+        const item = e.target.closest('.pick-choice');
+        if (!item) return;
+        addExerciseToDay(wId, dId, item.dataset.libId);
+        state.modal = null;
+        render();
+      });
+    }
+    function addExerciseToDay(wId, dId, libId, insertAtIdx) {
+      const d = findDay(wId, dId); const lib = getLibEx(libId);
+      if (!d || !lib) return;
+      const newEx = { libId, sets: 3, reps: 8, weight: null, rpe: null, rest: lib.restDefault || 60, main: false };
+      if (insertAtIdx !== undefined && insertAtIdx >= 0) d.ex.splice(insertAtIdx, 0, newEx);
+      else d.ex.push(newEx);
+      saveProgram();
+    }
+    function moveExercise(fromW, fromD, fromI, toW, toD, insertAtIdx) {
+      const srcDay = findDay(fromW, fromD);
+      const tgtDay = findDay(toW, toD);
+      if (!srcDay || !tgtDay) return;
+      const [moved] = srcDay.ex.splice(fromI, 1);
+      if (srcDay === tgtDay && insertAtIdx !== undefined && insertAtIdx > fromI) insertAtIdx--;
+      if (insertAtIdx !== undefined && insertAtIdx >= 0) tgtDay.ex.splice(insertAtIdx, 0, moved);
+      else tgtDay.ex.push(moved);
+      saveProgram();
+    }
+    function addLibExercise() {
+      const ex = { id: uid('ex'), name: '', group: 'other', restDefault: 60 };
+      state.modal = { type: 'edit-lib-exercise', data: { libEx: ex, isNew: true } };
+      render();
+    }
+    function editLibExercise(libId) {
+      const ex = getLibEx(libId); if (!ex) return;
+      state.modal = { type: 'edit-lib-exercise', data: { libEx: deepClone(ex), isNew: false } };
+      render();
+    }
+    function saveLibExercise() {
+      const ex = state.modal.data.libEx;
+      ex.name = document.getElementById('m-name').value.trim();
+      ex.group = document.getElementById('m-group').value;
+      ex.restDefault = parseInt(document.getElementById('m-rest').value) || 60;
+      if (!ex.name) { alert('Nom requis'); return; }
+      state.library[ex.id] = ex;
+      saveLibrary();
+      state.modal = null;
+      render();
+    }
+    function deleteLibExercise() {
+      const ex = state.modal.data.libEx;
+      if (!confirm(`Supprimer "${ex.name}" ? Les séances qui l'utilisent afficheront le nom sans plus permettre de le sélectionner.`)) return;
+      delete state.library[ex.id];
+      saveLibrary();
+      state.modal = null;
+      render();
+    }
+    function openLibraryManager() { state.modal = { type: 'library-manager' }; render(); }
+    function sendToPhone() { state.modal = { type: 'send-to-phone' }; render(); }
+    function importProgram() { state.modal = { type: 'import' }; render(); }
+    function doImport() {
+      const raw = document.getElementById('m-json').value.trim();
+      try {
+        const parsed = JSON.parse(raw);
+        if (!parsed.program || !parsed.library) { alert('Format invalide : besoin de {program, library}'); return; }
+        if (!confirm('Remplacer le programme et la bibliothèque actuels ?')) return;
+        state.program = parsed.program; state.library = parsed.library;
+        saveProgram(); saveLibrary();
+        state.modal = null; render();
+      } catch (e) { alert('JSON invalide : ' + e.message); }
+    }
+    function copyExport() {
+      const ta = document.getElementById('m-json');
+      if (!ta) return;
+      ta.select();
+      try {
+        navigator.clipboard.writeText(ta.value).then(() => {
+          const btn = document.querySelector('[data-action="copy-export"]');
+          if (btn) { const old = btn.textContent; btn.textContent = '✓ COPIÉ'; setTimeout(() => btn.textContent = old, 1500); }
+        }).catch(() => {
+          document.execCommand('copy');
+          alert('Copié dans le presse-papier');
+        });
+      } catch (e) {
+        document.execCommand('copy');
+        alert('Copié dans le presse-papier');
+      }
+    }
+    function resetDefault() {
+      if (!confirm('Restaurer le peak block par défaut ? La bibliothèque sera fusionnée (les exercices supprimés seront réajoutés).')) return;
+      state.program = deepClone(DEFAULT_PROGRAM);
+      Object.assign(state.library, DEFAULT_LIBRARY);
+      saveProgram(); saveLibrary();
+      render();
+    }
+    function closeModal() { state.modal = null; render(); }
+    function setSearch(v) { state.librarySearch = v; renderLibrary(); }
+    function setFilter(v) { state.libraryFilter = v; renderLibrary(); }
+
+    // ============================================================
+    // DRAG & DROP (HTML5 natif — souris)
+    // ============================================================
+    let dragData = null;
+
+    document.addEventListener('dragstart', (e) => {
+      // Never drag when the source is a form control
+      if (e.target.matches('input, textarea, select, button')) { e.preventDefault(); return; }
+      const el = e.target.closest('[data-draggable]');
+      if (!el) return;
+      dragData = { ...el.dataset };
+      e.dataTransfer.effectAllowed = 'move';
+      e.dataTransfer.setData('text/plain', JSON.stringify(dragData));
+      el.classList.add('dragging');
+    });
+    document.addEventListener('dragend', () => {
+      document.querySelectorAll('.dragging').forEach(el => el.classList.remove('dragging'));
+      document.querySelectorAll('.drop-hover').forEach(el => el.classList.remove('drop-hover'));
+      dragData = null;
+    });
+    document.addEventListener('dragover', (e) => {
+      const dz = e.target.closest('[data-drop-zone]');
+      if (!dz) return;
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+    });
+    document.addEventListener('dragenter', (e) => {
+      const dz = e.target.closest('[data-drop-zone]');
+      if (!dz) return;
+      document.querySelectorAll('.drop-hover').forEach(el => el.classList.remove('drop-hover'));
+      dz.classList.add('drop-hover');
+    });
+    document.addEventListener('drop', (e) => {
+      const dz = e.target.closest('[data-drop-zone]');
+      if (!dz || !dragData) return;
+      e.preventDefault();
+      const toW = dz.dataset.week, toD = dz.dataset.day;
+      // Determine insertion index based on pointer Y relative to existing exercises
+      const dayBody = dz.querySelector('.day-body');
+      let insertAtIdx = undefined;
+      if (dayBody) {
+        const exEls = dayBody.querySelectorAll('.ex-row');
+        for (let i = 0; i < exEls.length; i++) {
+          const rect = exEls[i].getBoundingClientRect();
+          if (e.clientY < rect.top + rect.height / 2) { insertAtIdx = i; break; }
+        }
+      }
+      if (dragData.draggable === 'library') {
+        addExerciseToDay(toW, toD, dragData.libId, insertAtIdx);
+      } else if (dragData.draggable === 'program') {
+        moveExercise(dragData.week, dragData.day, parseInt(dragData.exIdx), toW, toD, insertAtIdx);
+      }
+      dragData = null;
+      render();
+    });
+
+    // ============================================================
+    // EVENT DELEGATION
+    // ============================================================
+    document.addEventListener('click', (e) => {
+      const btn = e.target.closest('[data-action]');
+      if (!btn) return;
+      const a = btn.dataset.action;
+      const w = btn.dataset.week, d = btn.dataset.day, ei = btn.dataset.exIdx;
+      // Close modal only if user clicked directly on the overlay (not on modal content)
+      if (a === 'close-modal-bg') { if (e.target === btn) closeModal(); return; }
+      // For toggle-week, ignore clicks that come from a button in row-actions
+      if (a === 'toggle-week' && e.target.closest('.row-actions')) return;
+      // Also ignore clicks on inline inputs (they should focus, not trigger week toggle)
+      if (a === 'toggle-week' && e.target.matches('input, textarea, select')) return;
+      if (a === 'rename-program') renameProgram();
+      else if (a === 'add-week') addWeek();
+      else if (a === 'rename-week') renameWeek(w);
+      else if (a === 'duplicate-week') duplicateWeek(w);
+      else if (a === 'delete-week') deleteWeek(w);
+      else if (a === 'toggle-week') toggleWeek(w);
+      else if (a === 'add-day') addDay(w);
+      else if (a === 'edit-day') editDay(w, d);
+      else if (a === 'duplicate-day') duplicateDay(w, d);
+      else if (a === 'delete-day') deleteDay(w, d);
+      else if (a === 'save-day') saveDay();
+      else if (a === 'edit-exercise') editExercise(w, d, +ei);
+      else if (a === 'save-exercise') saveExercise();
+      else if (a === 'delete-exercise') deleteExercise(w, d, +ei);
+      else if (a === 'add-exercise') addExercise(w, d);
+      else if (a === 'toggle-main-modal') toggleMainModal();
+      else if (a === 'library-manager') openLibraryManager();
+      else if (a === 'add-lib-exercise') addLibExercise();
+      else if (a === 'edit-lib-exercise') editLibExercise(btn.dataset.libId);
+      else if (a === 'save-lib-exercise') saveLibExercise();
+      else if (a === 'delete-lib-exercise') deleteLibExercise();
+      else if (a === 'send-to-phone') sendToPhone();
+      else if (a === 'copy-export') copyExport();
+      else if (a === 'import') importProgram();
+      else if (a === 'do-import') doImport();
+      else if (a === 'reset-default') resetDefault();
+      else if (a === 'close-modal') closeModal();
+    });
+
+    // Inline editing on exercise rows (sets, reps, weight)
+    document.addEventListener('change', (e) => {
+      const inp = e.target;
+      if (!inp.dataset || !inp.dataset.inline) return;
+      const w = inp.dataset.week, d = inp.dataset.day, i = parseInt(inp.dataset.exIdx);
+      const day = findDay(w, d);
+      if (!day || !day.ex[i]) return;
+      const ex = day.ex[i];
+      const f = inp.dataset.inline;
+      if (f === 'sets') { const n = parseInt(inp.value); ex.sets = (isNaN(n) || n < 1) ? 1 : n; }
+      else if (f === 'reps') { ex.reps = inp.value.trim(); }
+      else if (f === 'weight') { ex.weight = inp.value === '' ? null : parseFloat(inp.value); }
+      saveProgram();
+    });
+
+    // Prevent drag from starting on inline inputs
+    document.addEventListener('mousedown', (e) => {
+      if (e.target.matches('input, textarea, select, button')) e.stopPropagation();
+    }, true);
+
+    document.getElementById('lib-search').addEventListener('input', (e) => setSearch(e.target.value));
+    document.getElementById('lib-filter').addEventListener('change', (e) => setFilter(e.target.value));
+
+    // Keyboard shortcuts
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && state.modal) closeModal();
+    });
+
+    // ============================================================
+    // INIT
+    // ============================================================
+    loadAll();
+    let seeded = false;
+    if (!state.library || Object.keys(state.library).length === 0) {
+      state.library = deepClone(DEFAULT_LIBRARY);
+      seeded = true;
+    }
+    if (!state.program || !state.program.weeks || state.program.weeks.length === 0) {
+      state.program = deepClone(DEFAULT_PROGRAM);
+      seeded = true;
+    }
+    if (seeded) { saveLibrary(); saveProgram(); }
+    renderLibraryFilter();
+    render();
+  </script>
+</body>
+</html>
