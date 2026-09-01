@@ -169,6 +169,110 @@
     .empty { text-align: center; color: var(--text-3); font-size: 12px; font-style: italic; padding: 40px 0; }
     .reset-btn { color: var(--text-2); border: 1px solid var(--border-1); padding: 12px 16px; font-size: 11px; letter-spacing: 1.5px; margin-top: 32px; width: 100%; font-weight: 600; }
 
+    /* ===== EDITOR TOGGLE (partagé) ===== */
+    .ed-view-toggle { display: flex; gap: 0; background: var(--bg-3); padding: 3px; border: 1px solid var(--border-1); }
+    .ed-toggle-btn { background: transparent; color: var(--text-2); padding: 8px 14px; font-size: 11px; font-weight: 700; letter-spacing: 0.5px; }
+    .ed-toggle-btn.active { background: var(--accent); color: var(--text-1); }
+    .med-view-toggle { display: flex; gap: 0; background: var(--bg-3); padding: 3px; border: 1px solid var(--border-1); margin-top: 16px; margin-bottom: 4px; }
+    .med-toggle-btn { flex: 1; background: transparent; color: var(--text-2); padding: 10px 8px; font-size: 11px; font-weight: 700; letter-spacing: 0.5px; }
+    .med-toggle-btn.active { background: var(--accent); color: var(--text-1); }
+
+    /* ===== EDITOR PC MODE (dans index.html) ===== */
+    .app.pc-mode { max-width: none; }
+    .pc-editor { display: flex; flex-direction: column; height: calc(100vh - 64px - env(safe-area-inset-bottom, 0px)); overflow: hidden; }
+    .pc-editor-header {
+      display: flex; align-items: center; justify-content: space-between; gap: 16px;
+      padding: 12px 24px; background: var(--bg-2); border-bottom: 1px solid var(--border-1);
+      flex: 0 0 auto;
+    }
+    .pc-header-left { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+    .pc-header-eyebrow { font-size: 10px; letter-spacing: 2px; color: var(--text-2); font-weight: 700; }
+    .pc-header-title { font-size: 18px; font-weight: 700; color: var(--text-1); cursor: pointer; display: flex; align-items: center; gap: 8px; }
+    .pc-header-title:hover { color: var(--accent); }
+    .pc-header-pen { font-size: 12px; color: var(--text-3); }
+    .pc-header-title:hover .pc-header-pen { color: var(--accent); }
+
+    .pc-editor-split { flex: 1; display: flex; overflow: hidden; }
+    .pc-panel { display: flex; flex-direction: column; overflow: hidden; }
+    .pc-panel-program { flex: 1.5; border-right: 1px solid var(--border-1); }
+    .pc-panel-library { flex: 1; min-width: 340px; max-width: 460px; }
+    .pc-panel-head { display: flex; align-items: center; justify-content: space-between; padding: 12px 20px; background: var(--bg-2); border-bottom: 1px solid var(--border-1); flex: 0 0 auto; }
+    .pc-panel-title { font-size: 11px; letter-spacing: 2px; color: var(--text-2); font-weight: 700; }
+    .pc-panel-body { flex: 1; overflow-y: auto; padding: 14px 18px 60px; }
+
+    .pc-tool-btn { background: var(--bg-3); border: 1px solid var(--border-1); color: var(--text-1); padding: 8px 12px; font-size: 11px; letter-spacing: 1px; font-weight: 700; }
+    .pc-tool-btn:hover { border-color: var(--border-2); background: var(--bg-1); }
+    .pc-tool-btn.primary { background: var(--accent); border-color: var(--accent); }
+    .pc-tool-btn.primary:hover { background: var(--accent-dim); border-color: var(--accent-dim); }
+
+    /* Weeks (PC) */
+    .pc-week { margin-bottom: 10px; background: var(--bg-2); border: 1px solid var(--border-1); }
+    .pc-week-head { display: flex; align-items: center; gap: 10px; padding: 12px 14px; cursor: pointer; border-bottom: 1px solid var(--border-1); }
+    .pc-week-head:hover { background: var(--bg-3); }
+    .pc-chevron { color: var(--text-2); font-size: 10px; width: 12px; }
+    .pc-week-name { flex: 1; font-size: 14px; font-weight: 700; color: var(--text-1); }
+    .pc-week-badge { font-size: 9px; letter-spacing: 1px; color: var(--text-2); background: var(--bg-3); padding: 3px 7px; font-weight: 700; }
+    .pc-row-actions { display: flex; gap: 2px; }
+    .pc-icon-btn { color: var(--text-2); padding: 5px 9px; font-size: 13px; background: transparent; border: none; }
+    .pc-icon-btn:hover { background: var(--bg-3); color: var(--text-1); }
+    .pc-icon-btn.danger:hover { color: var(--accent); background: var(--accent-glow); }
+    .pc-week-body { padding: 10px; }
+
+    /* Days (PC) */
+    .pc-day { background: var(--bg-3); border-left: 3px solid var(--border-2); margin-bottom: 8px; transition: border-color 120ms, background 120ms; }
+    .pc-day.drop-hover { border-left-color: var(--accent); background: var(--accent-glow); }
+    .pc-day-head { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-bottom: 1px solid var(--border-1); }
+    .pc-day-info { flex: 1; display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+    .pc-day-label { font-size: 10px; letter-spacing: 1px; color: var(--text-2); font-weight: 700; }
+    .pc-day-name { font-size: 13px; font-weight: 700; color: var(--text-1); }
+    .pc-day-test-badge { font-size: 9px; letter-spacing: 1px; color: var(--accent); background: var(--accent-glow); padding: 2px 5px; font-weight: 700; }
+    .pc-day-body { padding: 6px 8px 8px; }
+
+    /* Exercises (PC) */
+    .pc-ex-row { display: flex; align-items: center; gap: 8px; padding: 8px 10px; background: var(--bg-2); margin-bottom: 3px; border-left: 2px solid var(--border-1); cursor: grab; user-select: none; }
+    .pc-ex-row:active { cursor: grabbing; }
+    .pc-ex-row.main-mark { border-left-color: var(--accent); }
+    .pc-ex-row.dragging { opacity: 0.3; }
+    .pc-grip { color: var(--text-3); font-size: 14px; letter-spacing: -2px; line-height: 1; padding-right: 4px; }
+    .pc-ex-marker { padding: 2px 6px; font-size: 10px; color: var(--text-3); background: transparent; border: none; cursor: pointer; }
+    .pc-ex-marker.main { color: var(--accent); }
+    .pc-ex-marker:hover { color: var(--accent); }
+    .pc-ex-name { flex: 1; font-size: 12px; color: var(--text-1); font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+    .pc-ex-stats { font-size: 11px; color: var(--accent); font-family: ui-monospace, monospace; margin-right: 8px; }
+    .pc-ex-extra { font-size: 10px; color: var(--text-2); font-family: ui-monospace, monospace; letter-spacing: 0.3px; }
+
+    .pc-ex-inline { display: flex; align-items: center; gap: 4px; margin-right: 8px; flex-shrink: 0; }
+    .pc-inline-input { background: var(--bg-1); border: 1px solid var(--border-1); color: var(--accent); padding: 3px 5px; font-size: 11px; font-family: ui-monospace, monospace; text-align: center; height: 24px; font-weight: 700; }
+    .pc-inline-input:hover { border-color: var(--border-2); }
+    .pc-inline-input:focus { border-color: var(--accent); outline: none; background: var(--bg-3); }
+    .pc-inline-input.i-sets { width: 36px; }
+    .pc-inline-input.i-reps { width: 52px; }
+    .pc-inline-input.i-weight { width: 62px; }
+    .pc-inline-input::-webkit-outer-spin-button, .pc-inline-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+    .pc-inline-input[type=number] { -moz-appearance: textfield; }
+    .pc-inline-sep { color: var(--text-3); font-size: 11px; font-family: ui-monospace, monospace; }
+    .pc-inline-unit { font-size: 10px; color: var(--text-2); font-weight: 600; }
+
+    .pc-add-btn { display: block; width: 100%; padding: 8px; background: transparent; border: 1px dashed var(--border-2); color: var(--text-2); font-size: 11px; letter-spacing: 1px; margin-top: 4px; font-weight: 600; }
+    .pc-add-btn:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-glow); }
+    .pc-add-week-btn { display: block; width: 100%; padding: 16px; background: transparent; border: 1px dashed var(--border-2); color: var(--text-2); font-size: 12px; letter-spacing: 1.5px; font-weight: 700; margin-top: 10px; }
+    .pc-add-week-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+    .pc-lib-controls { padding: 10px 16px; background: var(--bg-2); border-bottom: 1px solid var(--border-1); display: flex; gap: 8px; flex: 0 0 auto; }
+    .pc-lib-search { flex: 1; background: var(--bg-1); border: 1px solid var(--border-1); color: var(--text-1); padding: 8px 10px; font-size: 12px; font-family: inherit; }
+    .pc-lib-filter { background: var(--bg-1); border: 1px solid var(--border-1); color: var(--text-1); padding: 8px 10px; font-size: 12px; font-family: inherit; }
+    .pc-lib-item { display: flex; align-items: center; gap: 10px; padding: 9px 12px; background: var(--bg-2); margin-bottom: 3px; border-left: 2px solid var(--border-1); cursor: grab; user-select: none; }
+    .pc-lib-item:hover { background: var(--bg-3); border-left-color: var(--border-2); }
+    .pc-lib-item:active { cursor: grabbing; }
+    .pc-lib-item.dragging { opacity: 0.3; }
+    .pc-lib-name { flex: 1; font-size: 12px; color: var(--text-1); font-weight: 600; }
+    .pc-lib-group { font-size: 9px; letter-spacing: 1px; color: var(--text-2); font-weight: 700; padding: 3px 6px; background: var(--bg-1); }
+
+    .pc-admin { margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--border-1); display: flex; gap: 8px; flex-wrap: wrap; }
+    .pc-admin .pc-tool-btn { flex: 1; min-width: 100px; }
+
+    .pc-empty { text-align: center; color: var(--text-3); font-size: 13px; padding: 40px 20px; font-style: italic; }
+
     /* ===== EDITOR MOBILE INTÉGRÉ (v7) ===== */
     .med-header { display: flex; align-items: baseline; gap: 8px; margin-top: 8px; margin-bottom: 4px; }
     .med-title { flex: 1; font-size: 24px; font-weight: 800; color: var(--text-1); font-family: Impact, sans-serif; text-transform: uppercase; letter-spacing: -0.5px; line-height: 1.1; }
@@ -522,6 +626,7 @@
     const K_READINESS = 'pl-readiness';
     const K_LIBRARY = 'pl-library';
     const K_PROGRAM = 'pl-program';
+    const K_EDITOR_MODE = 'pl-editor-mode';
 
     let state = {
       view: 'today',
@@ -535,6 +640,8 @@
       openWeek: null,
       editorExpandedWeeks: {},
       editorLibraryFilter: 'all',
+      editorLibrarySearch: '',
+      editorMode: 'mobile', // 'mobile' | 'pc', auto-detected on init
       modal: null,
     };
 
@@ -942,6 +1049,11 @@
     // RENDER: EDITOR
     // ============================================================
     function renderEditor() {
+      if (state.editorMode === 'pc') return renderEditorPc();
+      return renderEditorMobile();
+    }
+
+    function renderEditorMobile() {
       const weeks = programWeeks();
       if (weeks.length && (!state.openWeek || !weeks.find(w => w.id === state.openWeek))) {
         state.openWeek = weeks[0].id;
@@ -951,6 +1063,10 @@
 
       return `<div class="pad">
         <div class="eyebrow">ÉDITEUR · sauvegarde auto</div>
+        <div class="med-view-toggle">
+          <button class="med-toggle-btn active" data-action="set-editor-mode" data-mode="mobile">📱 Mode iPhone</button>
+          <button class="med-toggle-btn" data-action="set-editor-mode" data-mode="pc">💻 Mode PC</button>
+        </div>
         <div class="med-header">
           <div class="med-title">${esc(state.program.name || 'Programme sans nom')}</div>
           <button class="med-title-btn" data-action="rename-program" title="Renommer">✎</button>
@@ -1050,6 +1166,145 @@
         ${extras.length ? `<div class="med-ex-extras">${esc(extras.join(' · '))}</div>` : ''}
         ${ex.note ? `<div class="med-ex-note">${esc(ex.note)}</div>` : ''}
       </div>`;
+    }
+
+    // ============================================================
+    // RENDER: EDITOR PC MODE
+    // ============================================================
+    function renderEditorPc() {
+      const weeks = programWeeks();
+      return `<div class="pc-editor">
+        <div class="pc-editor-header">
+          <div class="pc-header-left">
+            <div class="pc-header-eyebrow">ÉDITEUR · sauvegarde auto</div>
+            <div class="pc-header-title" data-action="rename-program" title="Cliquer pour renommer">
+              ${esc(state.program.name || 'Programme sans nom')} <span class="pc-header-pen">✎</span>
+            </div>
+          </div>
+          <div class="ed-view-toggle">
+            <button class="ed-toggle-btn" data-action="set-editor-mode" data-mode="mobile">📱 iPhone</button>
+            <button class="ed-toggle-btn active" data-action="set-editor-mode" data-mode="pc">💻 PC</button>
+          </div>
+        </div>
+        <div class="pc-editor-split">
+          <section class="pc-panel pc-panel-program">
+            <div class="pc-panel-head">
+              <span class="pc-panel-title">PROGRAMME</span>
+              <button class="pc-tool-btn primary" data-action="add-week">+ SEMAINE</button>
+            </div>
+            <div class="pc-panel-body">
+              ${weeks.length === 0
+                ? `<div class="pc-empty">Aucune semaine. Clique "+ SEMAINE" en haut pour commencer.</div>`
+                : weeks.map((w, i) => renderPcWeek(w, i)).join('') + `<button class="pc-add-week-btn" data-action="add-week">+ AJOUTER UNE SEMAINE</button>`}
+              <div class="pc-admin">
+                <button class="pc-tool-btn" data-action="import-program">↓ IMPORT</button>
+                <button class="pc-tool-btn" data-action="export-program">↑ EXPORT</button>
+                <button class="pc-tool-btn" data-action="reset-program">↻ DÉFAUT</button>
+              </div>
+            </div>
+          </section>
+          <section class="pc-panel pc-panel-library">
+            <div class="pc-panel-head">
+              <span class="pc-panel-title">BIBLIOTHÈQUE · glisse vers un jour</span>
+              <button class="pc-tool-btn primary" data-action="add-lib-exercise">+ EXERCICE</button>
+            </div>
+            <div class="pc-lib-controls">
+              <input class="pc-lib-search" id="pc-lib-search" type="search" placeholder="Rechercher..." value="${esc(state.editorLibrarySearch)}">
+              <select class="pc-lib-filter" id="pc-lib-filter">
+                <option value="all">Tous</option>
+                ${GROUPS.map(g => `<option value="${g}"${state.editorLibraryFilter === g ? ' selected' : ''}>${GROUP_LABELS[g]}</option>`).join('')}
+              </select>
+            </div>
+            <div class="pc-panel-body" id="pc-lib-body">
+              ${renderPcLibraryList()}
+            </div>
+          </section>
+        </div>
+      </div>`;
+    }
+
+    function renderPcWeek(w, i) {
+      const expanded = state.editorExpandedWeeks[w.id] !== false;
+      return `<div class="pc-week">
+        <div class="pc-week-head" data-action="toggle-week" data-week="${w.id}">
+          <span class="pc-chevron">${expanded ? '▼' : '▶'}</span>
+          <span class="pc-week-name">S${i+1} · ${esc(w.name)}</span>
+          <span class="pc-week-badge">${w.days.length} j</span>
+          <div class="pc-row-actions">
+            <button class="pc-icon-btn" data-action="rename-week" data-week="${w.id}" title="Renommer">✎</button>
+            <button class="pc-icon-btn" data-action="duplicate-week" data-week="${w.id}" title="Dupliquer">⧉</button>
+            <button class="pc-icon-btn danger" data-action="delete-week" data-week="${w.id}" title="Supprimer">×</button>
+          </div>
+        </div>
+        ${expanded ? `<div class="pc-week-body">
+          ${w.days.map(d => renderPcDay(w.id, d)).join('')}
+          <button class="pc-add-btn" data-action="add-day" data-week="${w.id}">+ JOUR</button>
+        </div>` : ''}
+      </div>`;
+    }
+
+    function renderPcDay(wId, d) {
+      return `<div class="pc-day" data-drop-zone="day" data-week="${wId}" data-day="${d.id}">
+        <div class="pc-day-head">
+          <div class="pc-day-info">
+            <span class="pc-day-label">${esc(d.label)}${d.date ? ' · ' + fmtDateShort(d.date) : ''}</span>
+            <span class="pc-day-name">${esc(d.name)}</span>
+            ${d.isTest ? '<span class="pc-day-test-badge">TEST</span>' : ''}
+          </div>
+          <div class="pc-row-actions">
+            <button class="pc-icon-btn" data-action="edit-day" data-week="${wId}" data-day="${d.id}" title="Modifier">✎</button>
+            <button class="pc-icon-btn" data-action="duplicate-day" data-week="${wId}" data-day="${d.id}" title="Dupliquer">⧉</button>
+            <button class="pc-icon-btn danger" data-action="delete-day" data-week="${wId}" data-day="${d.id}" title="Supprimer">×</button>
+          </div>
+        </div>
+        <div class="pc-day-body">
+          ${(d.ex || []).map((ex, i) => renderPcExercise(wId, d.id, ex, i)).join('')}
+          <button class="pc-add-btn" data-action="add-exercise-to-day" data-week="${wId}" data-day="${d.id}">+ ajouter un exercice</button>
+        </div>
+      </div>`;
+    }
+
+    function renderPcExercise(wId, dId, ex, i) {
+      const def = getExDef(ex);
+      const canInline = !ex.isTest;
+      const extras = [];
+      if (ex.rpe) extras.push(`RPE ${ex.rpe}`);
+      if (ex.rest) extras.push(`${ex.rest}s`);
+      return `<div class="pc-ex-row ${ex.main ? 'main-mark' : ''}" draggable="true" data-draggable="program" data-week="${wId}" data-day="${dId}" data-ex-idx="${i}"${ex.note ? ` title="${esc(ex.note)}"` : ''}>
+        <span class="pc-grip">⋮⋮</span>
+        <button class="pc-ex-marker ${ex.main ? 'main' : ''}" data-action="edit-exercise" data-week="${wId}" data-day="${dId}" data-ex-idx="${i}" title="RPE, repos, note, marquer principal">${ex.main ? '●' : '○'}</button>
+        <span class="pc-ex-name">${esc(def.name)}</span>
+        ${canInline ? `<div class="pc-ex-inline">
+          <input class="pc-inline-input i-sets" type="number" min="1" value="${ex.sets ?? ''}" data-inline="sets" data-week="${wId}" data-day="${dId}" data-ex-idx="${i}" draggable="false">
+          <span class="pc-inline-sep">×</span>
+          <input class="pc-inline-input i-reps" type="text" value="${esc(ex.reps ?? '')}" data-inline="reps" data-week="${wId}" data-day="${dId}" data-ex-idx="${i}" draggable="false">
+          <span class="pc-inline-sep">@</span>
+          <input class="pc-inline-input i-weight" type="number" step="2.5" value="${ex.weight ?? ''}" data-inline="weight" data-week="${wId}" data-day="${dId}" data-ex-idx="${i}" placeholder="—" draggable="false">
+          <span class="pc-inline-unit">kg</span>
+        </div>` : `<span class="pc-ex-stats">${ex.overrides ? ex.overrides.length : ex.sets} étapes · TEST</span>`}
+        ${extras.length ? `<span class="pc-ex-extra">${esc(extras.join(' · '))}</span>` : ''}
+        <div class="pc-row-actions">
+          ${canInline ? `<button class="pc-icon-btn" data-action="edit-exercise" data-week="${wId}" data-day="${dId}" data-ex-idx="${i}" title="RPE, repos, note">✎</button>` : ''}
+          <button class="pc-icon-btn danger" data-action="delete-exercise" data-week="${wId}" data-day="${dId}" data-ex-idx="${i}" title="Supprimer">×</button>
+        </div>
+      </div>`;
+    }
+
+    function renderPcLibraryList() {
+      const q = state.editorLibrarySearch.toLowerCase().trim();
+      const items = Object.values(state.library)
+        .filter(x => state.editorLibraryFilter === 'all' || x.group === state.editorLibraryFilter)
+        .filter(x => !q || x.name.toLowerCase().includes(q))
+        .sort((a, b) => a.name.localeCompare(b.name));
+      if (items.length === 0) return `<div class="pc-empty">Aucun exercice trouvé.</div>`;
+      return items.map(ex => `
+        <div class="pc-lib-item" draggable="true" data-draggable="library" data-lib-id="${ex.id}">
+          <span class="pc-grip">⋮⋮</span>
+          <span class="pc-lib-name">${esc(ex.name)}</span>
+          <span class="pc-lib-group">${esc(GROUP_LABELS[ex.group] || ex.group)}</span>
+          <button class="pc-icon-btn" data-action="edit-lib-exercise" data-lib-id="${ex.id}" title="Modifier">✎</button>
+        </div>
+      `).join('');
     }
 
     // ============================================================
@@ -1346,6 +1601,10 @@
 
     function render() {
       const app = document.getElementById('app');
+      // Toggle full-width layout when in editor + PC mode
+      if (state.view === 'editor' && state.editorMode === 'pc') app.classList.add('pc-mode');
+      else app.classList.remove('pc-mode');
+
       let c = '';
       if (state.view === 'today') c = renderToday();
       else if (state.view === 'program') c = renderProgram();
@@ -1602,12 +1861,30 @@
       state.modal = null;
       render();
     }
-    function addExerciseToDay(weekId, dayId, libId) {
+    function addExerciseToDay(weekId, dayId, libId, insertAtIdx) {
       const d = findDayById(weekId, dayId);
       const lib = getLibEx(libId);
       if (!d || !lib) return;
-      d.ex.push({ libId, sets: 3, reps: 8, weight: null, rpe: null, rest: lib.restDefault || 60, main: false });
+      const newEx = { libId, sets: 3, reps: 8, weight: null, rpe: null, rest: lib.restDefault || 60, main: false };
+      if (insertAtIdx !== undefined && insertAtIdx >= 0 && insertAtIdx < d.ex.length) d.ex.splice(insertAtIdx, 0, newEx);
+      else d.ex.push(newEx);
       saveProgram();
+    }
+    function moveExercise(fromW, fromD, fromI, toW, toD, insertAtIdx) {
+      const srcDay = findDayById(fromW, fromD);
+      const tgtDay = findDayById(toW, toD);
+      if (!srcDay || !tgtDay) return;
+      const [moved] = srcDay.ex.splice(fromI, 1);
+      if (srcDay === tgtDay && insertAtIdx !== undefined && insertAtIdx > fromI) insertAtIdx--;
+      if (insertAtIdx !== undefined && insertAtIdx >= 0 && insertAtIdx < tgtDay.ex.length) tgtDay.ex.splice(insertAtIdx, 0, moved);
+      else tgtDay.ex.push(moved);
+      saveProgram();
+    }
+    function setEditorMode(mode) {
+      if (mode !== 'pc' && mode !== 'mobile') return;
+      state.editorMode = mode;
+      try { localStorage.setItem(K_EDITOR_MODE, mode); } catch (e) {}
+      render();
     }
     function filterLibrary(v) { state.editorLibraryFilter = v; render(); }
     function openLibraryManager() { state.modal = { type: 'library-manager' }; render(); }
@@ -1780,6 +2057,66 @@
     }
 
     // ============================================================
+    // DRAG & DROP PC MODE (HTML5 natif)
+    // ============================================================
+    let pcDragData = null;
+
+    function initPcDragDrop() {
+      document.addEventListener('dragstart', (e) => {
+        if (state.view !== 'editor' || state.editorMode !== 'pc') return;
+        if (e.target.matches('input, textarea, select, button')) { e.preventDefault(); return; }
+        const el = e.target.closest('[data-draggable]');
+        if (!el) return;
+        pcDragData = { ...el.dataset };
+        e.dataTransfer.effectAllowed = 'move';
+        try { e.dataTransfer.setData('text/plain', JSON.stringify(pcDragData)); } catch(err){}
+        el.classList.add('dragging');
+      });
+      document.addEventListener('dragend', () => {
+        document.querySelectorAll('.dragging').forEach(el => el.classList.remove('dragging'));
+        document.querySelectorAll('.drop-hover').forEach(el => el.classList.remove('drop-hover'));
+        pcDragData = null;
+      });
+      document.addEventListener('dragover', (e) => {
+        if (!pcDragData) return;
+        const dz = e.target.closest('[data-drop-zone]');
+        if (!dz) return;
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+      });
+      document.addEventListener('dragenter', (e) => {
+        if (!pcDragData) return;
+        const dz = e.target.closest('[data-drop-zone]');
+        if (!dz) return;
+        document.querySelectorAll('.drop-hover').forEach(el => el.classList.remove('drop-hover'));
+        dz.classList.add('drop-hover');
+      });
+      document.addEventListener('drop', (e) => {
+        if (!pcDragData) return;
+        const dz = e.target.closest('[data-drop-zone]');
+        if (!dz) return;
+        e.preventDefault();
+        const toW = dz.dataset.week, toD = dz.dataset.day;
+        const dayBody = dz.querySelector('.pc-day-body');
+        let insertAtIdx = undefined;
+        if (dayBody) {
+          const exEls = dayBody.querySelectorAll('.pc-ex-row');
+          for (let i = 0; i < exEls.length; i++) {
+            const rect = exEls[i].getBoundingClientRect();
+            if (e.clientY < rect.top + rect.height / 2) { insertAtIdx = i; break; }
+          }
+        }
+        if (pcDragData.draggable === 'library') {
+          addExerciseToDay(toW, toD, pcDragData.libId, insertAtIdx);
+        } else if (pcDragData.draggable === 'program') {
+          moveExercise(pcDragData.week, pcDragData.day, parseInt(pcDragData.exIdx), toW, toD, insertAtIdx);
+        }
+        pcDragData = null;
+        render();
+      });
+    }
+
+    // ============================================================
     // EVENT DELEGATION
     // ============================================================
     document.addEventListener('click', (e) => {
@@ -1829,6 +2166,7 @@
       else if (a === 'import-program') importProgram();
       else if (a === 'do-import') doImport();
       else if (a === 'reset-program') resetToDefaultProgram();
+      else if (a === 'set-editor-mode') setEditorMode(btn.dataset.mode);
       else if (a === 'close-modal') closeModal();
       else if (a === 'copy-editor-url') {
         const url = btn.dataset.url;
@@ -1843,6 +2181,11 @@
 
     document.addEventListener('change', (e) => {
       if (e.target.matches('[data-action="filter-library"]')) filterLibrary(e.target.value);
+      if (e.target.id === 'pc-lib-filter') {
+        state.editorLibraryFilter = e.target.value;
+        const body = document.getElementById('pc-lib-body');
+        if (body) body.innerHTML = renderPcLibraryList();
+      }
       // Inline edit on editor view: sets, reps, weight
       const inp = e.target;
       if (inp.dataset && inp.dataset.inline && state.view === 'editor') {
@@ -1864,12 +2207,28 @@
       if (inp.dataset.field && state.view === 'session') {
         updateSet(+inp.dataset.ex, +inp.dataset.set, inp.dataset.field, inp.value);
       }
+      // PC library search — re-render only library body to preserve focus
+      if (inp.id === 'pc-lib-search') {
+        state.editorLibrarySearch = inp.value;
+        const body = document.getElementById('pc-lib-body');
+        if (body) body.innerHTML = renderPcLibraryList();
+      }
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && state.modal) closeModal();
     });
 
     // ============================================================
     // INIT
     // ============================================================
     loadAll();
+    // Load editor mode preference, or auto-detect from screen width
+    try {
+      const savedMode = localStorage.getItem(K_EDITOR_MODE);
+      if (savedMode === 'pc' || savedMode === 'mobile') state.editorMode = savedMode;
+      else state.editorMode = window.innerWidth >= 900 ? 'pc' : 'mobile';
+    } catch (e) { state.editorMode = window.innerWidth >= 900 ? 'pc' : 'mobile'; }
     // Seed defaults if empty
     let seeded = false;
     if (!state.library || Object.keys(state.library).length === 0) {
@@ -1882,6 +2241,7 @@
     }
     if (seeded) { saveLibrary(); saveProgram(); }
     initDragDrop();
+    initPcDragDrop();
     render();
 
     if ('serviceWorker' in navigator) {
