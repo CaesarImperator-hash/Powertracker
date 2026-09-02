@@ -68,11 +68,14 @@
     .ex-name { font-size: 15px; font-weight: 600; color: var(--text-1); margin-bottom: 4px; }
     .ex-target { font-size: 12px; color: var(--accent); font-family: ui-monospace, monospace; }
     .ex-note { font-size: 11px; color: var(--text-2); margin-top: 4px; font-style: italic; }
-    .sets-grid { display: grid; grid-template-columns: 24px 1fr 1fr 40px; gap: 8px; align-items: center; margin-top: 12px; }
-    .sets-grid.with-label { grid-template-columns: 24px 80px 1fr 1fr 40px; }
+    .sets-grid { display: grid; grid-template-columns: 22px 1fr 60px 1fr 40px; gap: 6px; align-items: center; margin-top: 12px; }
+    .sets-grid.with-label { grid-template-columns: 22px 70px 1fr 55px 1fr 40px; }
     .set-head { font-size: 9px; letter-spacing: 1px; color: var(--text-2); font-weight: 600; text-transform: uppercase; padding-bottom: 4px; border-bottom: 1px solid var(--border-1); }
     .set-num { font-size: 13px; color: var(--text-2); font-family: ui-monospace, monospace; font-weight: 600; }
     .set-input { background: var(--bg-1); border: 1px solid var(--border-1); color: var(--text-1); padding: 8px 6px; font-size: 14px; font-family: ui-monospace, monospace; text-align: center; width: 100%; }
+    .set-input.done-input { color: var(--success); border-color: var(--border-2); }
+    .set-input.done-input:focus { border-color: var(--success); outline: none; }
+    .set-target-reps { font-size: 13px; color: var(--text-2); font-family: ui-monospace, monospace; font-weight: 700; text-align: center; padding: 8px 2px; background: var(--bg-3); border: 1px solid transparent; }
     .set-label { font-size: 10px; color: var(--text-2); letter-spacing: 0.5px; line-height: 1.2; padding-right: 4px; }
     .set-label.attempt { color: var(--accent); font-weight: 700; }
     .set-check { width: 36px; height: 36px; border: 1px solid var(--border-1); font-size: 18px; font-weight: 700; color: var(--text-2); display: flex; align-items: center; justify-content: center; }
@@ -314,6 +317,15 @@
     .modal-instruct { background: var(--bg-1); padding: 12px 14px; margin-top: 14px; font-size: 12px; color: var(--text-2); border-left: 3px solid var(--accent); line-height: 1.6; }
     .modal-instruct b { color: var(--text-1); }
 
+    /* Sync chip */
+    .sync-chip { display: inline-flex; align-items: center; gap: 5px; padding: 4px 9px; font-size: 10px; font-weight: 700; background: var(--bg-3); border: 1px solid var(--border-1); color: var(--text-2); cursor: pointer; letter-spacing: 0.5px; flex-shrink: 0; }
+    .sync-chip.ok { color: var(--success); border-color: var(--success); }
+    .sync-chip.error { color: var(--accent); border-color: var(--accent); }
+    .sync-chip.syncing { color: var(--warning); border-color: var(--warning); }
+    .sync-chip.idle { color: var(--text-3); }
+    @keyframes rot { from { transform: rotate(0); } to { transform: rotate(360deg); } }
+    .sync-chip.syncing .sync-chip-icon { display: inline-block; animation: rot 1s linear infinite; }
+
     .lib-picker-list { max-height: 320px; overflow-y: auto; margin-top: 8px; }
     .lib-picker-item { padding: 12px; background: var(--bg-1); margin-bottom: 4px; display: flex; justify-content: space-between; align-items: center; border-left: 2px solid var(--border-1); cursor: pointer; }
     .lib-picker-item:hover { background: var(--bg-3); }
@@ -530,6 +542,10 @@
     const K_PROGRAM = 'pl-program';
     const K_EDITOR_MODE = 'pl-editor-mode';
     const K_MUSCLES_WEEK = 'pl-muscles-week';
+    const K_SYNC_TOKEN = 'pl-sync-token';
+    const K_SYNC_GIST_ID = 'pl-sync-gist-id';
+    const K_SYNC_LOCAL_AT = 'pl-sync-local-at';
+    const K_SYNC_LAST_AT = 'pl-sync-last-at';
 
     let state = {
       view: 'program',
@@ -546,19 +562,46 @@
       editorMode: 'mobile',
       selectedLibIds: {}, // for bulk assign
       modal: null,
+      sync: {
+        token: '',
+        gistId: '',
+        enabled: false,
+        status: 'idle',    // 'idle', 'syncing', 'ok', 'error'
+        error: '',
+        lastAt: null,
+        localAt: null,
+      },
     };
 
     let timer = { interval: null, secLeft: 0, exName: '', active: false };
     let lastToggle = null;
+    let syncPushTimeout = null;
+    let suspendPushSchedule = false;
 
     function save(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
-    function saveProgress() { save(K_PROGRESS, state.progress); }
-    function saveLibrary() { save(K_LIBRARY, state.library); }
-    function saveProgram() { save(K_PROGRAM, state.program); }
+    function saveProgress() { save(K_PROGRESS, state.progress); schedulePush(); }
+    function saveLibrary() { save(K_LIBRARY, state.library); schedulePush(); }
+    function saveProgram() { save(K_PROGRAM, state.program); schedulePush(); }
     function loadAll() {
       try { const r = localStorage.getItem(K_PROGRESS); if (r) state.progress = JSON.parse(r); } catch (e) {}
       try { const r = localStorage.getItem(K_LIBRARY); if (r) state.library = JSON.parse(r); } catch (e) {}
       try { const r = localStorage.getItem(K_PROGRAM); if (r) state.program = JSON.parse(r); } catch (e) {}
+      // Sync state
+      try {
+        state.sync.token = localStorage.getItem(K_SYNC_TOKEN) || '';
+        state.sync.gistId = localStorage.getItem(K_SYNC_GIST_ID) || '';
+        state.sync.lastAt = localStorage.getItem(K_SYNC_LAST_AT) || null;
+        state.sync.localAt = localStorage.getItem(K_SYNC_LOCAL_AT) || null;
+        state.sync.enabled = !!state.sync.token && !!state.sync.gistId;
+      } catch (e) {}
+    }
+    function saveSyncState() {
+      try {
+        if (state.sync.token) localStorage.setItem(K_SYNC_TOKEN, state.sync.token); else localStorage.removeItem(K_SYNC_TOKEN);
+        if (state.sync.gistId) localStorage.setItem(K_SYNC_GIST_ID, state.sync.gistId); else localStorage.removeItem(K_SYNC_GIST_ID);
+        if (state.sync.lastAt) localStorage.setItem(K_SYNC_LAST_AT, state.sync.lastAt); else localStorage.removeItem(K_SYNC_LAST_AT);
+        if (state.sync.localAt) localStorage.setItem(K_SYNC_LOCAL_AT, state.sync.localAt); else localStorage.removeItem(K_SYNC_LOCAL_AT);
+      } catch (e) {}
     }
 
     // ============================================================
@@ -656,6 +699,7 @@
               ${isTest ? '<div class="set-head">étape</div>' : ''}
               <div class="set-head">kg</div>
               <div class="set-head">reps</div>
+              <div class="set-head">done</div>
               <div class="set-head">✓</div>
               ${ex.sets.map((set, si) => {
                 const lblTxt = set.label || '';
@@ -663,7 +707,8 @@
                 return `<div class="set-num">${si+1}</div>
                   ${isTest ? `<div class="set-label ${isAtt ? 'attempt' : ''}">${esc(lblTxt)}</div>` : ''}
                   <input class="set-input" type="number" step="2.5" inputmode="decimal" data-ex="${exIdx}" data-set="${si}" data-field="weight" value="${set.weight ?? ''}" placeholder="—">
-                  <input class="set-input" type="${isTest ? 'number' : 'text'}" inputmode="numeric" data-ex="${exIdx}" data-set="${si}" data-field="reps" value="${set.reps ?? ''}" placeholder="—">
+                  <div class="set-target-reps" title="Reps visées (défini dans l'éditeur)">${esc(set.reps ?? '—')}</div>
+                  <input class="set-input done-input" type="text" inputmode="numeric" data-ex="${exIdx}" data-set="${si}" data-field="repsDone" value="${set.repsDone ?? ''}" placeholder="—" title="Reps effectuées">
                   <button class="set-check ${set.done ? 'done' : ''}" data-action="toggle-set" data-ex="${exIdx}" data-set="${si}" data-rest="${def.rest || 0}" data-exname="${esc(libDef.name)}">${set.done ? '✓' : ''}</button>`;
               }).join('')}
             </div>
@@ -808,7 +853,13 @@
       const cols = Math.min(weeks.length + 1, 6) || 1;
 
       return `<div class="pad">
-        <div class="eyebrow">ÉDITEUR · sauvegarde auto</div>
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
+          <div class="eyebrow">ÉDITEUR · sauvegarde auto</div>
+          ${state.sync.enabled ? `<div class="sync-chip ${state.sync.status}" data-action="open-sync">
+            <span class="sync-chip-icon">${state.sync.status === 'syncing' ? '⟳' : state.sync.status === 'error' ? '⚠' : '☁'}</span>
+            <span>SYNC</span>
+          </div>` : ''}
+        </div>
         <div class="med-view-toggle">
           <button class="med-toggle-btn active" data-action="set-editor-mode" data-mode="mobile">📱 iPhone</button>
           <button class="med-toggle-btn" data-action="set-editor-mode" data-mode="pc">💻 PC</button>
@@ -832,6 +883,7 @@
         <div class="med-admin">
           <div class="med-admin-title">OPTIONS</div>
           <div class="med-admin-btns">
+            <button class="med-admin-btn" data-action="open-sync">☁ SYNC CLOUD (GITHUB) ${state.sync.enabled ? '· ACTIVE' : '· NON ACTIVÉE'}</button>
             <button class="med-admin-btn" data-action="open-library-manager">GÉRER LA BIBLIOTHÈQUE</button>
             <button class="med-admin-btn" data-action="open-bulk-muscles">ATTRIBUER MUSCLES EN MASSE</button>
             <button class="med-admin-btn" data-action="import-program">IMPORTER UN PROGRAMME</button>
@@ -925,9 +977,15 @@
               ${esc(state.program.name || 'Programme sans nom')} <span class="pc-header-pen">✎</span>
             </div>
           </div>
-          <div class="ed-view-toggle">
-            <button class="ed-toggle-btn" data-action="set-editor-mode" data-mode="mobile">📱 iPhone</button>
-            <button class="ed-toggle-btn active" data-action="set-editor-mode" data-mode="pc">💻 PC</button>
+          <div style="display:flex;align-items:center;gap:10px;">
+            ${state.sync.enabled ? `<div class="sync-chip ${state.sync.status}" data-action="open-sync" title="${esc(state.sync.status === 'error' ? state.sync.error : (state.sync.lastAt ? 'Sync ' + fmtRelative(state.sync.lastAt) : 'Sync activée'))}">
+              <span class="sync-chip-icon">${state.sync.status === 'syncing' ? '⟳' : state.sync.status === 'error' ? '⚠' : '☁'}</span>
+              <span>SYNC</span>
+            </div>` : ''}
+            <div class="ed-view-toggle">
+              <button class="ed-toggle-btn" data-action="set-editor-mode" data-mode="mobile">📱 iPhone</button>
+              <button class="ed-toggle-btn active" data-action="set-editor-mode" data-mode="pc">💻 PC</button>
+            </div>
           </div>
         </div>
         <div class="pc-editor-split">
@@ -941,6 +999,7 @@
                 ? `<div class="pc-empty">Aucune semaine. Clique "+ SEMAINE" en haut pour commencer.</div>`
                 : weeks.map((w, i) => renderPcWeek(w, i)).join('') + `<button class="pc-add-week-btn" data-action="add-week">+ AJOUTER UNE SEMAINE</button>`}
               <div class="pc-admin">
+                <button class="pc-tool-btn" data-action="open-sync">☁ SYNC ${state.sync.enabled ? '✓' : ''}</button>
                 <button class="pc-tool-btn" data-action="import-program">↓ IMPORT</button>
                 <button class="pc-tool-btn" data-action="export-program">↑ EXPORT</button>
                 <button class="pc-tool-btn" data-action="reset-program">↻ DÉFAUT</button>
@@ -1218,6 +1277,49 @@
           { label: '📋 Copier', cls: 'confirm', action: 'copy-export' },
         ]);
       }
+      if (m.type === 'sync-cloud') {
+        const s = state.sync;
+        const statusLbl = s.status === 'syncing' ? '⟳ Sync en cours...'
+                      : s.status === 'ok' ? '✓ Synchronisé'
+                      : s.status === 'error' ? '⚠ Erreur'
+                      : 'Prêt';
+        return modalWrap('Sync cloud · GitHub Gist', 'Sync automatique via un Gist privé de ton compte GitHub', `
+          ${!s.enabled ? `
+            <div class="modal-instruct">
+              <b>1.</b> Va sur GitHub → clique ton avatar → <b>Settings</b><br>
+              <b>2.</b> Tout en bas du menu de gauche → <b>Developer settings</b><br>
+              <b>3.</b> <b>Personal access tokens</b> → <b>Tokens (classic)</b><br>
+              <b>4.</b> <b>Generate new token (classic)</b> · Nom : "PL Tracker" · Expiration : "No expiration" (ou 1 an)<br>
+              <b>5.</b> Coche <b>uniquement <code>gist</code></b> dans les scopes<br>
+              <b>6.</b> Génère, copie le token (commence par <code>ghp_</code>), colle ci-dessous
+            </div>
+            <div class="modal-field" style="margin-top:14px;">
+              <label class="modal-label">TOKEN GITHUB</label>
+              <input class="modal-input" id="m-sync-token" type="password" placeholder="ghp_..." autocomplete="off" autocapitalize="off" spellcheck="false">
+            </div>
+            <div class="modal-field" style="font-size:11px;color:var(--text-3);line-height:1.5;">
+              Sur d'autres appareils : colle le même token, l'app retrouvera le même Gist automatiquement.
+            </div>
+          ` : `
+            <div class="modal-instruct">
+              <b>Statut :</b> <span style="color:${s.status === 'ok' ? 'var(--success)' : s.status === 'error' ? 'var(--accent)' : 'var(--text-1)'};">${statusLbl}</span><br>
+              ${s.lastAt ? `<b>Dernière sync :</b> ${fmtRelative(s.lastAt)} <span style="color:var(--text-3);">(${new Date(s.lastAt).toLocaleString('fr-FR')})</span><br>` : ''}
+              <b>Gist ID :</b> <code>${esc(s.gistId.slice(0, 12))}...</code>
+              ${s.error ? `<br><span style="color:var(--accent);"><b>Erreur :</b> ${esc(s.error)}</span>` : ''}
+            </div>
+            <div style="margin-top:14px;font-size:11px;color:var(--text-3);line-height:1.5;">
+              La sync se déclenche automatiquement 2 s après chaque modification et à l'ouverture de l'app. Utilise "Sync maintenant" pour forcer.
+            </div>
+          `}
+        `, s.enabled ? [
+          { label: 'Désactiver', cls: 'danger', action: 'sync-disable' },
+          { label: 'Sync maintenant', cls: 'confirm', action: 'sync-now' },
+          { label: 'Fermer', cls: 'cancel', action: 'close-modal' },
+        ] : [
+          { label: 'Annuler', cls: 'cancel', action: 'close-modal' },
+          { label: 'Activer', cls: 'confirm', action: 'sync-activate' },
+        ]);
+      }
       return '';
     }
 
@@ -1287,6 +1389,8 @@
       const k = sessionKey(weekId, dayId);
       if (state.progress[k]) {
         state.sessionData = state.progress[k];
+        // migration: ensure repsDone exists on each set (empty for old sessions)
+        state.sessionData.exercises.forEach(ex => ex.sets.forEach(s => { if (s.repsDone === undefined) s.repsDone = null; }));
       } else {
         state.sessionData = {
           completed: false,
@@ -1294,8 +1398,8 @@
           exercises: (d.ex || []).map(e => ({
             libId: e.libId,
             sets: e.overrides
-              ? e.overrides.map(o => ({ done: false, weight: o.weight, reps: o.reps, label: o.label }))
-              : Array(e.sets).fill(null).map(() => ({ done: false, weight: e.weight ?? null, reps: e.reps })),
+              ? e.overrides.map(o => ({ done: false, weight: o.weight, reps: o.reps, repsDone: null, label: o.label }))
+              : Array(e.sets).fill(null).map(() => ({ done: false, weight: e.weight ?? null, reps: e.reps, repsDone: null })),
           })),
         };
       }
@@ -1697,6 +1801,16 @@
       else if (a === 'copy-export') copyExport();
       else if (a === 'reset-program') resetToDefaultProgram();
       else if (a === 'close-modal') closeModal();
+      else if (a === 'open-sync') { state.modal = { type: 'sync-cloud' }; render(); }
+      else if (a === 'sync-activate') {
+        const inp = document.getElementById('m-sync-token');
+        const tok = inp ? inp.value.trim() : '';
+        if (!tok) { alert('Token requis'); return; }
+        state.modal = null; render();
+        syncActivate(tok);
+      }
+      else if (a === 'sync-disable') { syncDisable(); state.modal = null; render(); }
+      else if (a === 'sync-now') { state.modal = null; render(); syncNow(); }
     });
 
     document.addEventListener('change', (e) => {
@@ -1750,6 +1864,207 @@
     });
 
     // ============================================================
+    // SYNC CLOUD (GitHub Gist)
+    // ============================================================
+    const SYNC_FILENAME = 'pl-tracker-sync.json';
+    const SYNC_DESC = 'PL Tracker sync (auto-généré)';
+
+    function nowIso() { return new Date().toISOString(); }
+    function fmtRelative(iso) {
+      if (!iso) return '—';
+      const s = Math.floor((Date.now() - new Date(iso).getTime()) / 1000);
+      if (s < 5) return "à l'instant";
+      if (s < 60) return `il y a ${s} s`;
+      if (s < 3600) return `il y a ${Math.floor(s/60)} min`;
+      if (s < 86400) return `il y a ${Math.floor(s/3600)} h`;
+      return `il y a ${Math.floor(s/86400)} j`;
+    }
+
+    async function githubApi(method, path, body) {
+      const headers = {
+        'Authorization': 'Bearer ' + state.sync.token,
+        'Accept': 'application/vnd.github+json',
+        'X-GitHub-Api-Version': '2022-11-28',
+      };
+      if (body) headers['Content-Type'] = 'application/json';
+      const res = await fetch('https://api.github.com' + path, {
+        method, headers, body: body ? JSON.stringify(body) : undefined,
+      });
+      if (!res.ok) {
+        let msg = res.status + ' ' + res.statusText;
+        try { const j = await res.json(); if (j.message) msg = j.message; } catch(e){}
+        throw new Error(msg);
+      }
+      return res.json();
+    }
+
+    async function findSyncGist() {
+      // list gists paginated (up to 3 pages)
+      for (let page = 1; page <= 3; page++) {
+        const gists = await githubApi('GET', `/gists?per_page=100&page=${page}`);
+        for (const g of gists) if (g.files && g.files[SYNC_FILENAME]) return g.id;
+        if (gists.length < 100) break;
+      }
+      return null;
+    }
+
+    function getSyncPayload() {
+      return {
+        version: 1,
+        updatedAt: state.sync.localAt || nowIso(),
+        program: state.program,
+        library: state.library,
+        progress: state.progress,
+      };
+    }
+
+    function updateLocalTimestamp() {
+      state.sync.localAt = nowIso();
+      try { localStorage.setItem(K_SYNC_LOCAL_AT, state.sync.localAt); } catch (e) {}
+    }
+
+    function schedulePush() {
+      if (!state.sync.enabled || suspendPushSchedule) return;
+      updateLocalTimestamp();
+      clearTimeout(syncPushTimeout);
+      syncPushTimeout = setTimeout(() => syncPush(), 2000);
+    }
+
+    async function syncActivate(token) {
+      state.sync.token = token.trim();
+      state.sync.status = 'syncing';
+      state.sync.error = '';
+      render();
+      try {
+        // Test the token
+        const user = await githubApi('GET', '/user');
+        // Find existing gist or create
+        const existing = await findSyncGist();
+        if (existing) {
+          state.sync.gistId = existing;
+          state.sync.enabled = true;
+          saveSyncState();
+          // Pull remote (may overwrite local)
+          await syncPull(true);
+        } else {
+          // Create new gist with current local data
+          if (!state.sync.localAt) updateLocalTimestamp();
+          const created = await githubApi('POST', '/gists', {
+            description: SYNC_DESC,
+            public: false,
+            files: { [SYNC_FILENAME]: { content: JSON.stringify(getSyncPayload()) } },
+          });
+          state.sync.gistId = created.id;
+          state.sync.enabled = true;
+          state.sync.lastAt = nowIso();
+          state.sync.status = 'ok';
+          saveSyncState();
+        }
+      } catch (e) {
+        state.sync.status = 'error';
+        state.sync.error = e.message || 'Erreur inconnue';
+        state.sync.token = '';
+        state.sync.gistId = '';
+        state.sync.enabled = false;
+        saveSyncState();
+      }
+      render();
+    }
+
+    async function syncPull(silentIfSame) {
+      if (!state.sync.enabled) return;
+      state.sync.status = 'syncing';
+      state.sync.error = '';
+      render();
+      try {
+        const gist = await githubApi('GET', `/gists/${state.sync.gistId}`);
+        const file = gist.files && gist.files[SYNC_FILENAME];
+        if (!file) throw new Error('Fichier sync manquant dans le Gist');
+        let content = file.content;
+        if (file.truncated && file.raw_url) {
+          const raw = await fetch(file.raw_url);
+          content = await raw.text();
+        }
+        const data = JSON.parse(content);
+        const remoteAt = data.updatedAt;
+        // Compare with local
+        if (state.sync.localAt && new Date(state.sync.localAt) > new Date(remoteAt)) {
+          // Local is fresher: don't overwrite
+          state.sync.status = 'ok';
+          state.sync.lastAt = nowIso();
+          saveSyncState();
+          render();
+          return;
+        }
+        if (!state.sync.localAt || new Date(remoteAt) > new Date(state.sync.localAt)) {
+          // Remote is newer, apply
+          suspendPushSchedule = true;
+          if (data.program) { state.program = data.program; save(K_PROGRAM, state.program); }
+          if (data.library) { state.library = data.library; save(K_LIBRARY, state.library); }
+          if (data.progress) { state.progress = data.progress; save(K_PROGRESS, state.progress); }
+          suspendPushSchedule = false;
+          state.sync.localAt = remoteAt;
+        }
+        state.sync.status = 'ok';
+        state.sync.lastAt = nowIso();
+        saveSyncState();
+        render();
+      } catch (e) {
+        state.sync.status = 'error';
+        state.sync.error = e.message || 'Erreur inconnue';
+        render();
+      }
+    }
+
+    async function syncPush() {
+      if (!state.sync.enabled) return;
+      state.sync.status = 'syncing';
+      state.sync.error = '';
+      render();
+      try {
+        const payload = getSyncPayload();
+        await githubApi('PATCH', `/gists/${state.sync.gistId}`, {
+          files: { [SYNC_FILENAME]: { content: JSON.stringify(payload) } },
+        });
+        state.sync.lastAt = nowIso();
+        state.sync.status = 'ok';
+        saveSyncState();
+        render();
+      } catch (e) {
+        state.sync.status = 'error';
+        state.sync.error = e.message || 'Erreur inconnue';
+        render();
+      }
+    }
+
+    async function syncNow() {
+      if (!state.sync.enabled) return;
+      await syncPull();
+      // If local was fresher, syncPull didn't push. Do a push to ensure remote is up to date.
+      if (state.sync.status !== 'error') await syncPush();
+    }
+
+    function syncDisable() {
+      if (!confirm('Désactiver la sync sur cet appareil ? Le token sera retiré (le Gist reste dans ton GitHub).')) return;
+      state.sync.token = '';
+      state.sync.gistId = '';
+      state.sync.enabled = false;
+      state.sync.status = 'idle';
+      state.sync.error = '';
+      state.sync.lastAt = null;
+      // keep localAt so if user re-activates, comparison works
+      saveSyncState();
+      render();
+    }
+
+    // Auto-pull when tab becomes visible
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible' && state.sync.enabled && state.sync.status !== 'syncing') {
+        syncPull();
+      }
+    });
+
+    // ============================================================
     // INIT
     // ============================================================
     loadAll();
@@ -1773,10 +2088,17 @@
         libMigrated = true;
       }
     });
-    if (seeded || libMigrated) { saveLibrary(); saveProgram(); }
+    if (seeded || libMigrated) {
+      suspendPushSchedule = true;
+      saveLibrary(); saveProgram();
+      suspendPushSchedule = false;
+    }
 
     initPcDragDrop();
     render();
+
+    // Kick off initial sync pull if activated (non-blocking)
+    if (state.sync.enabled) { setTimeout(() => syncPull(), 100); }
 
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js').catch(() => {}));
